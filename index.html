@@ -2,10 +2,11 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<title>รายงานการปฏิบัติงาน</title>
+<title>รายงานงานการปฏิบัติงาน</title>
 <style>
+/* บังคับใช้ฟอนต์ TH SarabunPSK ทั่วทั้งหน้าเว็บ */
 body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px; margin:auto; padding:20px; line-height: 1.3; user-select: none;}
-.day{border:2px solid #666; padding:15px; margin:20px 0; border-radius: 6px;}
+.day{border:2px solid #666; padding:15px; margin:20px 0; border-radius: 6px; position: relative;}
 .section{border:1px solid #ccc; padding:12px; margin:10px 0; border-radius: 4px; transition: background 0.2s;}
 
 /* เลเยอร์รูปภาพแบบยืดหยุ่นอัตโนมัติ (สูงสุดแถวละ 6 รูป พอดี A4) */
@@ -137,10 +138,12 @@ input[type=text]{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box
 <h2 class="main-title">รายงานการปฏิบัติงาน</h2>
 
 <div class="noprint" style="background:#e9ecef; padding:20px; border-radius:8px; margin-bottom:20px;">
-<h2>สร้างรายงานการปฏิบัติงาน</h2>
+<h2>ระบบสร้างรายงานการปฏิบัติงาน (บันทึกข้อมูลอัตโนมัติ 💾)</h2>
 <button onclick="addDay()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:4px;">+ เพิ่มวันที่</button>
 <button onclick="window.print()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:4px;">Export PDF (A4)</button>
 <button onclick="exportToWord()" style="background:#20c997; color:white; border:none; padding:10px 15px; border-radius:4px;">Export Word (.doc)</button>
+<button onclick="clearAllData()" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:4px; float: right;">🗑 ล้างข้อมูลทั้งหมด</button>
+<div style="clear: both;"></div>
 </div>
 
 <div id="days"></div>
@@ -153,17 +156,89 @@ input[type=text]{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box
 let imgCounter = 0;
 let scrollInterval = null;
 
+// ฟังก์ชันแปลงวันที่พ.ศ.
 function thaiDate(v){
  if(!v) return "";
  let parts = v.split('-');
  let year = parseInt(parts[0]);
  if (year < 2400) year = year + 543; 
  let d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])); 
- 
  return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function addDay(){
+// 💾 ฟังก์ชันสำหรับเซฟข้อมูลทั้งหมดลงเครื่องอัตโนมัติ
+function autoSave() {
+  let data = [];
+  let days = document.querySelectorAll('.day');
+  
+  days.forEach(day => {
+    let dateValue = day.querySelector('.datepick').value;
+    let jobsData = [];
+    
+    let sections = day.querySelectorAll('.section');
+    sections.forEach(sec => {
+      let titleVal = sec.querySelector('.input-title').value;
+      let imgsVal = [];
+      let imgs = sec.querySelectorAll('.grid img');
+      imgs.forEach(img => {
+        imgsVal.push(img.src); // เก็บ Base64 ของรูปภาพ
+      });
+      jobsData.push({ title: titleVal, images: imgsVal });
+    });
+    
+    data.push({ date: dateValue, jobs: jobsData });
+  });
+  
+  localStorage.setItem('report_system_data', JSON.stringify(data));
+}
+
+// 📂 ฟังก์ชันโหลดข้อมูลที่เซฟไว้กลับมาแสดงผลอัตโนมัติ
+function loadSavedData() {
+  let saved = localStorage.getItem('report_system_data');
+  if (!saved) {
+    addDay(); // ถ้าไม่มีข้อมูลเก่า ให้เพิ่ม 1 วันรอไว้เลย
+    return;
+  }
+  
+  let data = JSON.parse(saved);
+  if (data.length === 0) {
+    addDay();
+    return;
+  }
+
+  data.forEach(dayData => {
+    let day = addDay(false); // เพิ่มวันแบบยังไม่บันทึกซ้ำ
+    let datepick = day.querySelector(".datepick");
+    datepick.value = dayData.date;
+    if(dayData.date) {
+      day.querySelector(".dateTitle").innerText = "วันที่ " + thaiDate(dayData.date);
+    }
+    
+    dayData.jobs.forEach(jobData => {
+      let sec = addJob(day.querySelector('.noprint button'), false);
+      let titleInput = sec.querySelector('.input-title');
+      let titleView = sec.querySelector('.title');
+      titleInput.value = jobData.title;
+      titleView.innerText = jobData.title ? '- ' + jobData.title : '- ';
+      
+      let grid = sec.querySelector('.grid');
+      jobData.images.forEach(imgSrc => {
+        createImgContainer(imgSrc, grid);
+      });
+    });
+  });
+}
+
+// 🗑 ฟังก์ชันล้างข้อมูลทั้งหมดเมื่อต้องการเริ่มรายงานใหม่
+function clearAllData() {
+  if (confirm("คุณต้องการล้างข้อมูลทั้งหมดที่พิมพ์ค้างไว้เพื่อเริ่มทำรายงานชุดใหม่ใช่หรือไม่?")) {
+    localStorage.removeItem('report_system_data');
+    document.getElementById("days").innerHTML = "";
+    addDay();
+  }
+}
+
+function addDay(shouldSave = true){
  let day=document.createElement('div');
  day.className='day';
  day.innerHTML=`
@@ -171,7 +246,7 @@ function addDay(){
  <label><b>เลือกวันที่:</b></label>
  <div class="date-wrapper"><input type="date" class="datepick"></div>
  <button onclick="addJob(this)" style="background:#17a2b8; color:white; border:none;">+ เพิ่มงาน</button>
- <button onclick="this.closest('.day').remove()" style="background:#dc3545; color:white; border:none;">🗑 ลบวันที่นี้</button>
+ <button onclick="this.closest('.day').remove(); autoSave();" style="background:#dc3545; color:white; border:none;">🗑 ลบวันที่นี้</button>
  </div>
  <h3 class="dateTitle">วันที่: (โปรดเลือกวันที่)</h3>
  <div class="jobs"></div>
@@ -179,12 +254,15 @@ function addDay(){
 
  day.querySelector(".datepick").addEventListener("change", function(){
    day.querySelector(".dateTitle").innerText = "วันที่ " + thaiDate(this.value);
+   autoSave();
  });
 
  document.getElementById("days").appendChild(day);
+ if(shouldSave) autoSave();
+ return day;
 }
 
-function addJob(btn){
+function addJob(btn, shouldSave = true){
  let jobs=btn.closest('.day').querySelector('.jobs');
  let sec=document.createElement('div');
  sec.className='section';
@@ -193,7 +271,7 @@ function addJob(btn){
  <div class="noprint" style="border-left: 3px solid #17a2b8; padding-left: 10px;">
  <input type="text" class="input-title" placeholder="หัวข้อภารกิจ / ชื่องาน">
  <input type="file" multiple accept="image/*" style="margin-top:5px;">
- <button onclick="this.closest('.section').remove()" style="background:#6c757d; color:white; border:none; margin-top:5px;">🗑 ลบงานนี้</button>
+ <button onclick="this.closest('.section').remove(); autoSave();" style="background:#6c757d; color:white; border:none; margin-top:5px;">🗑 ลบงานนี้</button>
  </div>
  <div class="title-block"><span class="title">- </span></div>
  <div class="grid"></div>
@@ -202,7 +280,10 @@ function addJob(btn){
  let titleInput = sec.querySelector('.input-title');
  let titleView = sec.querySelector('.title');
 
- titleInput.addEventListener('input',()=>{ titleView.innerText = '- ' + titleInput.value; });
+ titleInput.addEventListener('input',()=>{ 
+   titleView.innerText = '- ' + titleInput.value; 
+   autoSave();
+ });
 
  let fileInput = sec.querySelector('input[type=file]');
  let grid = sec.querySelector('.grid');
@@ -235,19 +316,29 @@ function addJob(btn){
    } else {
       grid.appendChild(draggedElement);
    }
+   autoSave();
  });
 
  fileInput.addEventListener('change', e => {
    let newFiles = [...e.target.files];
+   let loadedCount = 0;
    newFiles.forEach(file => {
       let r = new FileReader();
-      r.onload = x => { createImgContainer(x.target.result, grid); };
+      r.onload = x => { 
+         createImgContainer(x.target.result, grid); 
+         loadedCount++;
+         if(loadedCount === newFiles.length) {
+            autoSave();
+         }
+      };
       r.readAsDataURL(file);
    });
    fileInput.value = '';
  });
 
  jobs.appendChild(sec);
+ if(shouldSave) autoSave();
+ return sec;
 }
 
 function createImgContainer(src, targetGrid) {
@@ -269,6 +360,7 @@ function createImgContainer(src, targetGrid) {
    container.addEventListener('dragend', () => { 
       container.classList.remove('drag-source');
       stopAutoScroll();
+      autoSave();
    });
    
    container.addEventListener('touchstart', handleTouchStart, {passive: false});
@@ -285,7 +377,7 @@ function createImgContainer(src, targetGrid) {
    delBtn.className = 'btn-ctrl btn-del-img';
    delBtn.innerHTML = '🗑';
    
-   delBtn.onclick = function(e) { e.stopPropagation(); container.remove(); };
+   delBtn.onclick = function(e) { e.stopPropagation(); container.remove(); autoSave(); };
    
    controls.appendChild(delBtn);
    container.appendChild(img);
@@ -364,6 +456,7 @@ function handleTouchEnd(e) {
      }
   }
   activeDragElement = null;
+  autoSave();
 }
 
 function handleAutoScroll(clientY) {
@@ -385,7 +478,6 @@ function exportToWord(){
     let days = document.querySelectorAll('.day');
     if(days.length === 0) { alert('กรุณาเพิ่มข้อมูลรายงานก่อนส่งออก'); return; }
 
-    // 🛠️ ล็อกสไตล์ฟอนต์ให้ระบุเจาะจงเฉพาะ TH SarabunPSK เท่านั้นในการฝังไฟล์ Word
     let style = `
         @reply-font { font-family: 'TH SarabunPSK'; }
         body { font-family: 'TH SarabunPSK', Arial, sans-serif; font-size: 16pt; line-height: 1.4; padding: 20px; }
@@ -468,7 +560,8 @@ function exportToWord(){
     URL.revokeObjectURL(url);
 }
 
-addDay();
+// เรียกโหลดข้อมูลเก่าทันทีเมื่อเปิดหน้าเว็บ
+loadSavedData();
 </script>
 </body>
 </html>
