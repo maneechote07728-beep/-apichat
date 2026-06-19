@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>รายงานงานการปฏิบัติงาน</title>
+<style>
+/* บังคับใช้ฟอนต์ TH SarabunPSK ทั่วทั้งหน้าเว็บ */
+body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px; margin:auto; padding:20px; line-height: 1.3; user-select: none;}
+.day{border:2px solid #666; padding:15px; margin:20px 0; border-radius: 6px;}
+.section{border:1px solid #ccc; padding:12px; margin:10px 0; border-radius: 4px; transition: background 0.2s;}
+
+/* เลเยอร์รูปภาพแบบยืดหยุ่นอัตโนมัติ (สูงสุดแถวละ 6 รูป พอดี A4) */
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  min-height: 60px;
+  border: 1px dashed transparent;
+  padding: 4px;
+}
+
+/* เอฟเฟกต์ไฮไลท์ตอนกำลังลากรูปภาพมาจ่อ */
+.grid.drag-over, .section.drag-over {
+  background: rgba(0, 123, 255, 0.15) !important;
+  border: 2px dashed #007bff;
+  border-radius: 4px;
+}
+
+/* จัดกล่องกรอบรูปภาพ */
+.img-container {
+  position: relative;
+  flex: 1 1 calc(16.66% - 8px); 
+  min-width: 130px;            
+  max-width: calc(16.66% - 8px);
+  height: 140px;
+  cursor: grab;
+  touch-action: none;
+}
+.img-container:active { cursor: grabbing; }
+.img-container.drag-source { opacity: 0.4; }
+
+.grid .img-container img {
+  width: 100%;
+  height: 100%;               
+  object-fit: cover;
+  border: 1px solid #999;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+/* ปุ่มลบรูปภาพ */
+.img-controls {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: none;
+  z-index: 10;
+}
+.img-container:hover .img-controls { display: flex; }
+@media (max-width: 768px) { .img-controls { display: flex; opacity: 0.8; } }
+
+.btn-ctrl {
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 12pt;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.btn-del-img { background: rgba(220, 53, 69, 0.95); }
+
+.grid:has(.img-container:nth-child(-n+5):last-child) .img-container { max-width: none; }
+
+/* บังคับฟอนต์ TH SarabunPSK ให้กับปุ่มและช่องกรอกข้อมูลทั้งหมด */
+button, input[type=text], h2, h3, label { font-family:'TH SarabunPSK', sans-serif !important; }
+button{font-size: 15pt; padding:4px 10px; margin:3px; cursor:pointer;}
+input[type=text]{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box; margin-bottom: 5px;}
+.noprint{margin-bottom:10px; background:#f5f5f5; padding:10px; border-radius:4px;}
+
+.dateTitle{margin-top:5px; color:#333; font-size: 18pt; font-weight: bold;}
+.title-block {font-size: 16pt; margin:5px 0;}
+.title{font-weight: bold; color:#111;}
+
+.main-title {
+  text-align: center;
+  font-size: 26pt;
+  font-weight: bold;
+  display: none;
+}
+
+/* สไตล์หน้าต่างพรีวิวรูปภาพขยายใหญ่ */
+.preview-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+  cursor: zoom-out;
+}
+.preview-modal img {
+  max-width: 90%;
+  max-height: 90%;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  border-radius: 4px;
+}
+
+.date-wrapper { position: relative; width: 100%; margin-bottom: 10px; cursor: pointer; }
+.datepick { font-family: inherit; font-size: 15pt; width: 100%; padding: 6px; box-sizing: border-box; cursor: pointer; }
+.datepick::-webkit-calendar-picker-indicator { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; color: transparent; background: transparent; cursor: pointer; }
+
+/* บังคับฟอนต์ตอนพิมพ์ PDF (A4) */
+@media print {
+  @page { size: A4; margin: 15mm 15mm 15mm 15mm !important; }
+  html, body { margin: 0; padding: 0; font-family:'TH SarabunPSK', sans-serif !important; }
+  .noprint {display:none !important;}
+  .img-controls {display:none !important;} 
+  .main-title {display:block !important; margin-bottom: 20px; text-align: center;}
+  .day {border:none; padding:0; margin:10px 0;}
+  .section {border:none; padding:5px 0; margin:5px 0;}
+  .grid { min-height: 0; }
+  .grid .img-container { max-width: calc(16.66% - 8px) !important; cursor: default; }
+  .grid:has(.img-container:nth-child(-n+5):last-child) .img-container { max-width: none !important; }
+  .preview-modal { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<h2 class="main-title">รายงานการปฏิบัติงาน</h2>
+
+<div class="noprint" style="background:#e9ecef; padding:20px; border-radius:8px; margin-bottom:20px;">
+<h2>ระบบสร้างรายงานการปฏิบัติงาน</h2>
+<button onclick="addDay()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:4px;">+ เพิ่มวันที่</button>
+<button onclick="window.print()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:4px;">Export PDF (A4)</button>
+<button onclick="exportToWord()" style="background:#20c997; color:white; border:none; padding:10px 15px; border-radius:4px;">Export Word (.doc)</button>
+</div>
+
+<div id="days"></div>
+
+<div id="previewModal" class="preview-modal" onclick="closePreview()">
+  <img id="previewImg" src="" alt="Preview">
+</div>
+
+<script>
+let imgCounter = 0;
+let scrollInterval = null;
+
+function thaiDate(v){
+ if(!v) return "";
+ let parts = v.split('-');
+ let year = parseInt(parts[0]);
+ if (year < 2400) year = year + 543; 
+ let d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])); 
+ 
+ return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function addDay(){
+ let day=document.createElement('div');
+ day.className='day';
+ day.innerHTML=`
+ <div class="noprint">
+ <label><b>เลือกวันที่:</b></label>
+ <div class="date-wrapper"><input type="date" class="datepick"></div>
+ <button onclick="addJob(this)" style="background:#17a2b8; color:white; border:none;">+ เพิ่มงาน</button>
+ <button onclick="this.closest('.day').remove()" style="background:#dc3545; color:white; border:none;">🗑 ลบวันที่นี้</button>
+ </div>
+ <h3 class="dateTitle">วันที่: (โปรดเลือกวันที่)</h3>
+ <div class="jobs"></div>
+ `;
+
+ day.querySelector(".datepick").addEventListener("change", function(){
+   day.querySelector(".dateTitle").innerText = "วันที่ " + thaiDate(this.value);
+ });
+
+ document.getElementById("days").appendChild(day);
+}
+
+function addJob(btn){
+ let jobs=btn.closest('.day').querySelector('.jobs');
+ let sec=document.createElement('div');
+ sec.className='section';
+
+ sec.innerHTML=`
+ <div class="noprint" style="border-left: 3px solid #17a2b8; padding-left: 10px;">
+ <input type="text" class="input-title" placeholder="หัวข้อภารกิจ / ชื่องาน">
+ <input type="file" multiple accept="image/*" style="margin-top:5px;">
+ <button onclick="this.closest('.section').remove()" style="background:#6c757d; color:white; border:none; margin-top:5px;">🗑 ลบงานนี้</button>
+ </div>
+ <div class="title-block"><span class="title">- </span></div>
+ <div class="grid"></div>
+ `;
+
+ let titleInput = sec.querySelector('.input-title');
+ let titleView = sec.querySelector('.title');
+
+ titleInput.addEventListener('input',()=>{ titleView.innerText = '- ' + titleInput.value; });
+
+ let fileInput = sec.querySelector('input[type=file]');
+ let grid = sec.querySelector('.grid');
+
+ grid.addEventListener('dragover', e => { 
+   e.preventDefault(); 
+   grid.classList.add('drag-over'); 
+   handleAutoScroll(e.clientY);
+ });
+ 
+ grid.addEventListener('dragleave', () => { 
+   grid.classList.remove('drag-over'); 
+   stopAutoScroll();
+ });
+ 
+ grid.addEventListener('drop', e => {
+   e.preventDefault();
+   grid.classList.remove('drag-over');
+   stopAutoScroll();
+   
+   let id = e.dataTransfer.getData('text/plain');
+   let draggedElement = document.getElementById(id);
+   if (!draggedElement) return;
+   
+   let targetImgContainer = e.target.closest('.img-container');
+   if (targetImgContainer && targetImgContainer !== draggedElement) {
+      let rect = targetImgContainer.getBoundingClientRect();
+      let next = (e.clientX - rect.left) > (rect.width / 2);
+      grid.insertBefore(draggedElement, next ? targetImgContainer.nextSibling : targetImgContainer);
+   } else {
+      grid.appendChild(draggedElement);
+   }
+ });
+
+ fileInput.addEventListener('change', e => {
+   let newFiles = [...e.target.files];
+   newFiles.forEach(file => {
+      let r = new FileReader();
+      r.onload = x => { createImgContainer(x.target.result, grid); };
+      r.readAsDataURL(file);
+   });
+   fileInput.value = '';
+ });
+
+ jobs.appendChild(sec);
+}
+
+function createImgContainer(src, targetGrid) {
+   imgCounter++;
+   let container = document.createElement('div');
+   container.className = 'img-container';
+   container.id = 'img-item-' + imgCounter;
+   container.draggable = true;
+
+   container.onclick = function(e) {
+      if(e.target.classList.contains('btn-del-img')) return;
+      openPreview(src);
+   };
+
+   container.addEventListener('dragstart', e => { 
+      e.dataTransfer.setData('text/plain', container.id); 
+      container.classList.add('drag-source');
+   });
+   container.addEventListener('dragend', () => { 
+      container.classList.remove('drag-source');
+      stopAutoScroll();
+   });
+   
+   container.addEventListener('touchstart', handleTouchStart, {passive: false});
+   container.addEventListener('touchmove', handleTouchMove, {passive: false});
+   container.addEventListener('touchend', handleTouchEnd, {passive: false});
+
+   let img = document.createElement('img');
+   img.src = src;
+   
+   let controls = document.createElement('div');
+   controls.className = 'img-controls';
+   
+   let delBtn = document.createElement('button');
+   delBtn.className = 'btn-ctrl btn-del-img';
+   delBtn.innerHTML = '🗑';
+   
+   delBtn.onclick = function(e) { e.stopPropagation(); container.remove(); };
+   
+   controls.appendChild(delBtn);
+   container.appendChild(img);
+   container.appendChild(controls);
+   
+   targetGrid.appendChild(container);
+}
+
+function openPreview(src) {
+  document.getElementById('previewImg').src = src;
+  document.getElementById('previewModal').style.display = 'flex';
+}
+function closePreview() {
+  document.getElementById('previewModal').style.display = 'none';
+}
+
+let activeDragElement = null;
+let touchStartX = 0, touchStartY = 0;
+let isMoved = false;
+
+function handleTouchStart(e) {
+  activeDragElement = this;
+  let touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  isMoved = false;
+  this.classList.add('drag-source');
+}
+
+function handleTouchMove(e) {
+  if (!activeDragElement) return;
+  let touch = e.touches[0];
+  
+  if (Math.abs(touch.clientX - touchStartX) > 10 || Math.abs(touch.clientY - touchStartY) > 10) {
+     isMoved = true;
+  }
+  
+  if (!isMoved) return;
+  e.preventDefault();
+  handleAutoScroll(touch.clientY);
+
+  let elementOver = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (!elementOver) return;
+
+  document.querySelectorAll('.grid').forEach(g => g.classList.remove('drag-over'));
+  let targetGrid = elementOver.closest('.grid');
+  if (targetGrid) {
+     targetGrid.classList.add('drag-over');
+  }
+}
+
+function handleTouchEnd(e) {
+  this.classList.remove('drag-source');
+  stopAutoScroll();
+  if (!activeDragElement) return;
+  if (!isMoved) { activeDragElement = null; return; }
+  
+  e.preventDefault();
+  let touch = e.changedTouches[0];
+  let elementOver = document.elementFromPoint(touch.clientX, touch.clientY);
+  
+  document.querySelectorAll('.grid').forEach(g => g.classList.remove('drag-over'));
+  
+  if (elementOver) {
+     let targetGrid = elementOver.closest('.grid');
+     let targetImgContainer = elementOver.closest('.img-container');
+     
+     if (targetGrid) {
+        if (targetImgContainer && targetImgContainer !== activeDragElement) {
+           let rect = targetImgContainer.getBoundingClientRect();
+           let next = (touch.clientX - rect.left) > (rect.width / 2);
+           targetGrid.insertBefore(activeDragElement, next ? targetImgContainer.nextSibling : targetImgContainer);
+        } else {
+           targetGrid.appendChild(activeDragElement);
+        }
+     }
+  }
+  activeDragElement = null;
+}
+
+function handleAutoScroll(clientY) {
+  let scrollZone = 80;
+  let speed = 12;
+  stopAutoScroll();
+  if (clientY < scrollZone) {
+     scrollInterval = setInterval(() => { window.scrollBy(0, -speed); }, 15);
+  } else if (clientY > window.innerHeight - scrollZone) {
+     scrollInterval = setInterval(() => { window.scrollBy(0, speed); }, 15);
+  }
+}
+
+function stopAutoScroll() {
+  if (scrollInterval) { clearInterval(scrollInterval); scrollInterval = null; }
+}
+
+function exportToWord(){
+    let days = document.querySelectorAll('.day');
+    if(days.length === 0) { alert('กรุณาเพิ่มข้อมูลรายงานก่อนส่งออก'); return; }
+
+    // 🛠️ ล็อกสไตล์ฟอนต์ให้ระบุเจาะจงเฉพาะ TH SarabunPSK เท่านั้นในการฝังไฟล์ Word
+    let style = `
+        @reply-font { font-family: 'TH SarabunPSK'; }
+        body { font-family: 'TH SarabunPSK', Arial, sans-serif; font-size: 16pt; line-height: 1.4; padding: 20px; }
+        h2 { font-family: 'TH SarabunPSK', sans-serif; text-align: center; margin-bottom: 25px; font-size: 24pt; font-weight: bold; }
+        h3 { font-family: 'TH SarabunPSK', sans-serif; color: #000; margin-top: 20px; margin-bottom: 10px; font-size: 18pt; font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .title-block { font-family: 'TH SarabunPSK', sans-serif; font-size: 16pt; margin: 8px 0; font-weight: normal; }
+        .title { font-weight: bold; }
+        
+        .word-table { width: 100%; border-collapse: collapse; border: none; margin-top: 5px; margin-bottom: 15px; }
+        .word-table td { border: none; padding: 4px; text-align: center; vertical-align: middle; width: 16.66%; }
+        .word-img { width: 105px; height: 110px; border: 1px solid #999; }
+    `;
+
+    let htmlContent = '<h2>รายงานการปฏิบัติงาน</h2>';
+    let imageParts = "";
+    let imgLocationCounter = 1;
+
+    days.forEach(day => {
+        htmlContent += `<h3>${day.querySelector('.dateTitle').innerText}</h3>`;
+        let sections = day.querySelectorAll('.section');
+        sections.forEach(sec => {
+            let jobTitle = sec.querySelector('.title').innerText;
+            htmlContent += `<div class="title-block"><span class="title">${jobTitle}</span></div>`;
+            
+            let imgs = sec.querySelectorAll('.grid img');
+            if(imgs.length > 0) {
+                htmlContent += '<table class="word-table"><tr>';
+                
+                imgs.forEach((img, index) => {
+                    if (index > 0 && index % 6 === 0) {
+                        htmlContent += '</tr><tr>';
+                    }
+
+                    let base64Data = img.src;
+                    if (base64Data.startsWith("data:image")) {
+                        let parts = base64Data.split(';base64,');
+                        let mimeType = parts[0].replace('data:', '');
+                        let rawBase64 = parts[1];
+                        let extension = mimeType.split('/')[1] || 'png';
+                        let contentLocation = `file:///C:/img_report_${imgLocationCounter}.${extension}`;
+
+                        htmlContent += `<td><img class="word-img" src="${contentLocation}" width="105" height="110" /></td>`;
+
+                        imageParts += `--NEXT.OUR.REPORT\n`;
+                        imageParts += `Content-Location: ${contentLocation}\n`;
+                        imageParts += `Content-Transfer-Encoding: base64\n`;
+                        imageParts += `Content-Type: ${mimeType}\n\n`;
+                        imageParts += `${rawBase64}\n\n`;
+
+                        imgLocationCounter++;
+                    }
+                });
+                
+                let remainingCells = (6 - (imgs.length % 6)) % 6;
+                for (let i = 0; i < remainingCells; i++) {
+                    htmlContent += '<td></td>';
+                }
+                
+                htmlContent += '</tr></table>';
+            }
+        });
+    });
+
+    let mhtml = `MIME-Version: 1.0\n`;
+    mhtml += `Content-Type: multipart/related; boundary="NEXT.OUR.REPORT"\n\n`;
+    mhtml += `--NEXT.OUR.REPORT\n`;
+    mhtml += `Content-Type: text/html; charset="utf-8"\n\n`;
+    mhtml += `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n<style>${style}</style>\n</head>\n<body>\n${htmlContent}\n</body>\n</html>\n\n`;
+    mhtml += imageParts;
+    mhtml += `--NEXT.OUR.REPORT--`;
+
+    let blob = new Blob([mhtml], { type: 'application/msword' });
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = 'รายงานการปฏิบัติงาน.doc';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+addDay();
+</script>
+</body>
+</html>
