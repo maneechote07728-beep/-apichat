@@ -18,6 +18,19 @@ body {
   background-color: #fdfdfd;
 }
 
+/* 🎨 ลายน้ำ "By Apichat" ลอยบนพื้นหลังหน้าเว็บ (แสดงเฉพาะบนหน้าจอ ไม่ยุ่งกับเอกสารตอนพิมพ์) */
+.web-watermark {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  font-size: 20pt;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.15); /* สีดำจางๆ 15% */
+  z-index: 5000;
+  pointer-events: none; /* ทำให้กดทะลุได้ ไม่บังปุ่ม */
+  font-family: Arial, sans-serif;
+}
+
 .day {
   border: 2px solid #666;
   padding: 15px;
@@ -220,6 +233,66 @@ textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; m
   border-radius: 4px;
 }
 
+/* 📥 หน้าต่างป๊อปอัปรับอรุณเงื่อนไขการใช้งานเว็บ (Welcome Guide Modal) */
+.welcome-modal {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  z-index: 30000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  box-sizing: border-box;
+}
+.welcome-content {
+  background: white;
+  max-width: 500px;
+  width: 100%;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  box-sizing: border-box;
+  animation: modalFadeIn 0.3s ease-out;
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.welcome-title {
+  margin-top: 0;
+  font-size: 20pt;
+  color: #117a8b;
+  font-weight: bold;
+  border-bottom: 2px solid #17a2b8;
+  padding-bottom: 6px;
+  text-align: center;
+}
+.welcome-list {
+  margin: 15px 0;
+  padding-left: 20px;
+}
+.welcome-list li {
+  margin-bottom: 8px;
+  font-size: 16pt;
+  color: #333;
+}
+.btn-welcome-close {
+  display: block;
+  width: 100%;
+  background: linear-gradient(135deg, #28a745, #218838);
+  color: white;
+  border: none;
+  padding: 8px;
+  font-size: 16pt;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 15px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+}
+.btn-welcome-close:hover { background: #1e7e34; }
+
 .date-wrapper { position: relative; width: 100%; margin-bottom: 10px; cursor: pointer; }
 .datepick { font-family: inherit; font-size: 15pt; width: 100%; padding: 6px; box-sizing: border-box; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; }
 .datepick::-webkit-calendar-picker-indicator { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; color: transparent; background: transparent; cursor: pointer; }
@@ -228,6 +301,13 @@ textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; m
 @media (max-width: 768px) {
   body { padding: 10px; font-size: 15pt; padding-bottom: 90px; }
   
+  /* 🎨 ขยับลายน้ำหนีขึ้นมาเล็กน้อยบนมือถือเพื่อไม่ให้ทับแถบแจ้งเตือนด้านล่าง */
+  .web-watermark {
+    bottom: 60px;
+    left: 15px;
+    font-size: 16pt;
+  }
+
   /* 🕒 ย้ายนาฬิกาขยับหนีขึ้นไปบนสุดขวาของหน้าจอ ไม่ให้บังด้านล่าง */
   .floating-clock { 
     top: 10px; 
@@ -280,7 +360,10 @@ textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; m
 @media print {
   @page { size: A4; margin: 15mm 15mm 15mm 15mm !important; }
   html, body { margin: 0; padding: 0; font-family:'TH SarabunPSK', sans-serif !important; background: #fff; }
-  .noprint, .btn-toggle-day, .autosave-toast, .floating-clock { display: none !important; }
+  
+  /* ซ่อนลายน้ำเว็บ สลักนาฬิกา และป๊อปอัปทั้งหมดตอนพิมพ์ */
+  .noprint, .btn-toggle-day, .autosave-toast, .floating-clock, .welcome-modal, .web-watermark { display: none !important; }
+  
   .jobs { display: block !important; }
   .img-controls { display: none !important; } 
   .main-title { display: block !important; margin-bottom: 20px; text-align: center; }
@@ -294,6 +377,21 @@ textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; m
 </style>
 </head>
 <body>
+
+<div class="web-watermark">By Apichat</div>
+
+<div id="welcomeModal" class="welcome-modal">
+  <div class="welcome-content">
+    <h3 class="welcome-title">📢 คำแนะนำและเงื่อนไขการใช้งาน</h3>
+    <ul class="welcome-list">
+      <li>⚡ <b>ระบบบันทึกอัตโนมัติ (Real-time):</b> ข้อมูลรายงานจะบันทึกลงหน่วยความจำบราวเซอร์ทันทีเมื่อเพื่อนพิมพ์ข้อความ, แอดรูปภาพ, หรือสลับเลื่อนเปลี่ยนตำแหน่งรูปภาพ</li>
+      <li>📂 <b>กู้คืนงานค้างให้อัตโนมัติ:</b> หากปิดเว็บไปแล้วเข้าใหม่ภายใน 1 ชม. ระบบจะโหลดรายงานล่าสุดกลับมาพิมพ์ต่อให้ทันที (ป้ายแจ้งเตือนเซฟมุมล่างจะแสดงเวลาเซฟล่าสุดให้ทราบ 3 วินาทีแล้วหายไป)</li>
+      <li>🗑 <b>การล้างทำรายงานฉบับใหม่:</b> หากต้องการเคลียร์ข้อมูลเก่าทั้งหมดทิ้ง ให้คลิกที่ปุ่มสีแดง <b>"ล้างข้อมูลทั้งหมด"</b> ด้านบน</li>
+      <li>🖼 <b>การจัดเรียง/ดูรูปภาพ:</b> สามารถกดที่รูปเพื่อดูรูปใหญ่ และใช้การลากวาง (Drag & Drop) เพื่อสลับย้ายตำแหน่งภาพได้อย่างอิสระทั้งคอมพิวเตอร์และมือถือ</li>
+    </ul>
+    <button class="btn-welcome-close" onclick="closeWelcomeModal()">รับทราบและเริ่มใช้งานเลย 👍</button>
+  </div>
+</div>
 
 <div class="floating-clock" id="floatingClock">
   <span>⏱ เวลาปัจจุบัน:</span>
@@ -326,7 +424,7 @@ textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; m
 <script>
 let imgCounter = 0;
 let scrollInterval = null;
-let toastTimeout = null; // ตัวแปรคุมเวลาการปิดป้าย Toast
+let toastTimeout = null; 
 
 function thaiDate(v){
  if(!v) return "";
@@ -337,7 +435,10 @@ function thaiDate(v){
  return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-// 🕒 ระบบอัปเดตเวลานาฬิกาป๊อปอัปลอยแบบ Real-time
+function closeWelcomeModal() {
+  document.getElementById('welcomeModal').style.display = 'none';
+}
+
 function updateLiveClock() {
   let now = new Date();
   document.getElementById('liveClockTime').innerText = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " น.";
@@ -345,25 +446,20 @@ function updateLiveClock() {
 setInterval(updateLiveClock, 1000);
 updateLiveClock();
 
-// 💾 ฟังก์ชันสำหรับสั่งแสดงป้ายแจ้งเตือนเป็นเวลา 3 วินาทีแล้วจางหายไป
 function showToast(text, timeStr) {
   let toast = document.getElementById('autosaveToast');
   document.getElementById('saveStatusText').innerText = text;
   document.getElementById('saveTime').innerText = timeStr;
   
-  // ล้าง Timeout เดิมออกก่อนหากมีการเซฟรัวๆ ติดต่อกัน
   if (toastTimeout) clearTimeout(toastTimeout);
   
-  // สั่งแสดงป้ายแจ้งเตือน
   toast.classList.add('show');
   
-  // ตั้งเวลานับถอยหลัง 3 วินาที (3000ms) ให้จางหายไป
   toastTimeout = setTimeout(() => {
     toast.classList.remove('show');
   }, 3000);
 }
 
-// 💾 ระบบเซฟอัตโนมัติลงเครื่อง (เซฟทันทีเมื่อมีการเปลี่ยนแปลง)
 function autoSave() {
   let data = [];
   let days = document.querySelectorAll('.day');
@@ -397,7 +493,6 @@ function autoSave() {
   showToast("บันทึกข้อมูลอัตโนมัติแล้ว 💾", now.toLocaleTimeString('th-TH'));
 }
 
-// 📂 โหลดข้อมูลเก่าที่เคยพิมพ์ค้างไว้กลับคืนมาเมื่อเข้าหน้าเว็บ
 function loadSavedData() {
   let saved = localStorage.getItem('report_system_data_v6');
   if (!saved) {
@@ -455,7 +550,6 @@ function loadSavedData() {
     }
   });
 
-  // เมื่อเข้าหน้าเว็บ สั่งแสดงป้ายแจ้งเตือนว่าโหลดและเซฟครั้งล่าสุดตอนกี่โมง ค้างไว้ 3 วินาทีแล้วหายไป
   let savedDate = new Date(wrapper.timestamp);
   showToast("โหลดข้อมูลบันทึกล่าสุด: ", savedDate.toLocaleTimeString('th-TH'));
 }
@@ -530,13 +624,11 @@ function addJob(btn, shouldSave = true){
  let descInput = sec.querySelector('.input-desc');
  let descView = sec.querySelector('.desc-text');
 
- // ⚡ บันทึกทันทีเมื่อพิมพ์หัวข้อ
  titleInput.addEventListener('input',()=>{ 
    titleView.innerText = '- ' + titleInput.value; 
    autoSave();
  });
  
- // ⚡ บันทึกทันทีเมื่อพิมพ์รายละเอียด
  descInput.addEventListener('input',()=>{ 
    descView.innerText = descInput.value; 
    autoSave();
@@ -769,7 +861,6 @@ function exportToWord(){
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
-// โหลดข้อมูลเก่าอัตโนมัติเมื่อเปิดเว็บบราวเซอร์ขึ้นมา
 loadSavedData();
 </script>
 </body>
