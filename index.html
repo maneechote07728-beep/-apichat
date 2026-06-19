@@ -19,6 +19,21 @@ body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px;
   padding-bottom: 8px;
 }
 
+/* ส่วนแสดงเวลาปัจจุบันที่มุมขวาบน */
+.day-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.live-clock {
+  font-size: 13pt;
+  color: #666;
+  background: #e9ecef;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: bold;
+}
+
 /* ปุ่มพับ/กางหมวดหมู่ประจำวัน */
 .btn-toggle-day {
   background: #6c757d;
@@ -31,13 +46,13 @@ body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px;
 }
 .btn-toggle-day:hover { background: #5a6268; }
 
-/* 🛠️ แก้ไขการพับ: เมื่อพับแล้ว ให้ซ่อนเฉพาะกล่องแก้ไขข้อมูล (noprint) และรายการงาน (jobs) แต่ยังคงแสดงหัวข้อวันที่ */
+/* เมื่อพับแล้ว ให้ซ่อนเฉพาะกล่องแก้ไขข้อมูล (noprint) และรายการงาน (jobs) แต่ยังคงแสดงหัวข้อวันที่และเวลา */
 .day.collapsed .day-edit-box { display: none !important; }
 .day.collapsed .jobs { display: none !important; }
 .day.collapsed { background: #f8f9fa; border-color: #bbb; padding-bottom: 10px; }
 .day.collapsed .day-header { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
 
-/* เลเยอร์รูปภาพแบบยืดหยุ่นอัตโนมัติ (เรียงเป็นแนวนอนสวยงาม) */
+/* เลเยอร์รูปภาพแบบยืดหยุ่นอัตโนมัติ */
 .grid {
   display: flex;
   flex-wrap: wrap;
@@ -162,11 +177,11 @@ textarea{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box; margin
 .datepick { font-family: inherit; font-size: 15pt; width: 100%; padding: 6px; box-sizing: border-box; cursor: pointer; }
 .datepick::-webkit-calendar-picker-indicator { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; color: transparent; background: transparent; cursor: pointer; }
 
-/* บังคับพิมพ์ PDF (A4) ปรับปรุงเรื่องการจัดเรียงรูปภาพแนวนอน */
+/* บังคับพิมพ์ PDF (A4) */
 @media print {
   @page { size: A4; margin: 15mm 15mm 15mm 15mm !important; }
   html, body { margin: 0; padding: 0; font-family:'TH SarabunPSK', sans-serif !important; }
-  .noprint, .btn-toggle-day, .autosave-toast {display:none !important;}
+  .noprint, .btn-toggle-day, .autosave-toast, .live-clock {display:none !important;}
   .jobs { display: block !important; }
   .img-controls {display:none !important;} 
   .main-title {display:block !important; margin-bottom: 20px; text-align: center;}
@@ -216,6 +231,17 @@ function thaiDate(v){
  return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
+// ฟังก์ชันอัปเดตเวลานาฬิกาปัจจุบันของแต่ละกล่อง
+function updateLiveClocks() {
+  let now = new Date();
+  let timeString = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " น.";
+  document.querySelectorAll('.live-clock').forEach(clock => {
+    clock.innerText = timeString;
+  });
+}
+// สั่งให้นาฬิกาเดินทุกๆ 1 วินาที
+setInterval(updateLiveClocks, 1000);
+
 // 💾 ระบบเซฟอัตโนมัติ
 function autoSave() {
   let data = [];
@@ -244,15 +270,15 @@ function autoSave() {
     reportData: data
   };
   
-  localStorage.setItem('report_system_data_v4', JSON.stringify(wrapper));
+  localStorage.setItem('report_system_data_v5', JSON.stringify(wrapper));
   
   let now = new Date();
   document.getElementById('saveTime').innerText = now.toLocaleTimeString('th-TH');
 }
 
-// 📂 โหลดข้อมูล
+// 📂 โหล่งข้อมูลเก่า
 function loadSavedData() {
-  let saved = localStorage.getItem('report_system_data_v4');
+  let saved = localStorage.getItem('report_system_data_v5');
   if (!saved) {
     addDay();
     return;
@@ -263,7 +289,7 @@ function loadSavedData() {
   let oneHour = 60 * 60 * 1000;
   
   if (now - wrapper.timestamp > oneHour) {
-    localStorage.removeItem('report_system_data_v4');
+    localStorage.removeItem('report_system_data_v5');
     addDay();
     return;
   }
@@ -310,11 +336,12 @@ function loadSavedData() {
 
   let savedDate = new Date(wrapper.timestamp);
   document.getElementById('saveTime').innerText = savedDate.toLocaleTimeString('th-TH') + " (โหลดข้อมูลเดิม)";
+  updateLiveClocks();
 }
 
 function clearAllData() {
   if (confirm("คุณต้องการล้างข้อมูลทั้งหมดที่พิมพ์ค้างไว้เพื่อเริ่มทำรายงานชุดใหม่ใช่หรือไม่?")) {
-    localStorage.removeItem('report_system_data_v4');
+    localStorage.removeItem('report_system_data_v5');
     document.getElementById("days").innerHTML = "";
     addDay();
   }
@@ -337,7 +364,10 @@ function addDay(shouldSave = true){
  day.innerHTML=`
  <div class="day-header">
    <h3 class="dateTitle">วันที่: (โปรดเลือกวันที่)</h3>
-   <button class="btn-toggle-day" onclick="toggleDay(this)">[-] พับเก็บ</button>
+   <div class="day-actions">
+     <div class="live-clock">--:--:-- น.</div>
+     <button class="btn-toggle-day" onclick="toggleDay(this)">[-] พับเก็บ</button>
+   </div>
  </div>
  <div class="day-edit-box">
    <div class="noprint">
@@ -356,6 +386,7 @@ function addDay(shouldSave = true){
  });
 
  document.getElementById("days").appendChild(day);
+ updateLiveClocks();
  if(shouldSave) autoSave();
  return day;
 }
