@@ -450,14 +450,13 @@ body.preview-mode-active .btn-exit-preview {
 
 <div id="welcomeModal" class="welcome-modal">
   <div class="welcome-content">
-    <h3 class="welcome-title">📢 คำแนะนำและเงื่อนไขการใช้งาน</h3>
+    <h3 class="welcome-title">📢 คำแนะนำการใช้งาน</h3>
     <ul class="welcome-list">
-      <li>⚡ <b>ระบบบันทึกอัตโนมัติ (Real-time):</b> ข้อมูลรายงานจะบันทึกลงหน่วยความจำบราวเซอร์ทันทีเมื่อเพื่อนพิมพ์ข้อความ, แอดรูปภาพ, หรือสลับเลื่อนเปลี่ยนตำแหน่งรูปภาพ</li>
-      <li>📂 <b>กู้คืนงานค้างให้อัตโนมัติ:</b> หากปิดเว็บไปแล้วเข้าใหม่ภายใน 1 ชม. ระบบจะโหลดรายงานล่าสุดกลับมาพิมพ์ต่อให้ทันที (ป้ายแจ้งเตือนเซฟมุมล่างจะแสดงเวลาเซฟล่าสุดให้ทราบ 3 วินาทีแล้วหายไป)</li>
-      <li>🗑 <b>การล้างทำรายงานฉบับใหม่:</b> หากต้องการเคลียร์ข้อมูลเก่าทั้งหมดทิ้ง ให้คลิกที่ปุ่มสีแดง <b>"ล้างข้อมูลทั้งหมด"</b> ด้านบน</li>
+      <li>⚡ <b>ระบบบันทึกอัตโนมัติ (Real-time):</b> ข้อมูลรายงานจะบันทึกลงหน่วยความจำบราวเซอร์ทันทีเมื่อ พิมพ์ข้อความ, แอดรูปภาพ, หรือสลับเลื่อนเปลี่ยนตำแหน่งรูปภาพ</li>
+      <li>📂 <b>กู้คืนงานค้างให้อัตโนมัติ:</b> หากปิดเว็บไปแล้วเข้าใหม่ภายใน 1 ชม. ระบบจะโหลดรายงานล่าสุดกลับมาพิมพ์ต่อให้ทันที </li>
       <li>🖼 <b>การจัดเรียง/ดูรูปภาพ:</b> สามารถกดที่รูปเพื่อดูรูปใหญ่ และใช้การลากวาง (Drag & Drop) เพื่อสลับย้ายตำแหน่งภาพได้อย่างอิสระทั้งคอมพิวเตอร์และมือถือ</li>
     </ul>
-    <button class="btn-welcome-close" onclick="closeWelcomeModal()">รับทราบและเริ่มใช้งานเลย 👍</button>
+    <button class="btn-welcome-close" onclick="closeWelcomeModal()">รับทราบ👍</button>
   </div>
 </div>
 
@@ -469,7 +468,7 @@ body.preview-mode-active .btn-exit-preview {
 <h2 class="main-title">รายงานการปฏิบัติงาน</h2>
 
 <div class="noprint">
-<h2 style="margin-top:0; margin-bottom:10px;">ระบบสร้างรายงานการปฏิบัติงาน</h2>
+<h2 style="margin-top:0; margin-bottom:10px;">รายงานการปฏิบัติงาน</h2>
 <div class="menu-buttons">
   <button onclick="addDay()" style="background:#28a745; color:white; border:none;">+ เพิ่มวันที่</button>
   <button onclick="enterPreviewMode()" style="background:#17a2b8; color:white; border:none;">👁 พรีวิวเอกสาร</button>
@@ -482,7 +481,7 @@ body.preview-mode-active .btn-exit-preview {
 <div id="days"></div>
 
 <div id="autosaveToast" class="autosave-toast">
-  <span id="saveStatusText">บันทึกข้อมูลอัตโนมัติแล้ว 💾</span>
+  <span id="saveStatusText">บันทึกข้อมูลอัตโนมัติแล้วน่ะจ๊ะ 💾</span>
   <span id="saveTime" style="font-size: 11pt; opacity: 0.85;">--:--:--</span>
 </div>
 
@@ -518,7 +517,7 @@ updateLiveClock();
 // 👁 ฟังก์ชันเปิดโหมดพรีวิวข้อมูลทั้งหมด
 function enterPreviewMode() {
   let days = document.querySelectorAll('.day');
-  if(days.length === 0) { alert('ยังไม่มีข้อมูลรายงานสำหรับการพรีวิวครับ'); return; }
+  if(days.length === 0) { alert('ยังไม่มีข้อมูลรายงานสำหรับการพรีวิวนะครัช'); return; }
   document.body.classList.add('preview-mode-active');
   window.scrollTo(0, 0);
 }
@@ -572,7 +571,7 @@ function autoSave() {
   localStorage.setItem('report_system_data_v6', JSON.stringify(wrapper));
   
   let now = new Date();
-  showToast("บันทึกข้อมูลอัตโนมัติแล้ว 💾", now.toLocaleTimeString('th-TH'));
+  showToast("บันทึกข้อมูลอัตโนมัติแล้วครัช 💾", now.toLocaleTimeString('th-TH'));
 }
 
 function loadSavedData() {
