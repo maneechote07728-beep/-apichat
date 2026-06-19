@@ -9,30 +9,35 @@ body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px;
 .day{border:2px solid #666; padding:15px; margin:20px 0; border-radius: 6px; position: relative;}
 .section{border:1px solid #ccc; padding:12px; margin:10px 0; border-radius: 4px; transition: background 0.2s;}
 
-/* ปุ่มพับ/กางหมวดหมู่ประจำวัน (แสดงผลด้านบนขวาของกล่องวัน) */
+/* จัดส่วนหัวข้อของวัน */
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  border-bottom: 1px dashed #ccc;
+  padding-bottom: 8px;
+}
+
+/* ปุ่มพับ/กางหมวดหมู่ประจำวัน */
 .btn-toggle-day {
-  position: absolute;
-  top: 15px;
-  right: 15px;
   background: #6c757d;
   color: white;
   border: none;
-  padding: 5px 15px;
+  padding: 4px 14px;
   border-radius: 4px;
   font-size: 14pt;
   cursor: pointer;
-  z-index: 100;
-  display: block !important;
 }
 .btn-toggle-day:hover { background: #5a6268; }
 
-/* ส่วนเนื้อหาภายในวันที่จะโดนสั่งซ่อนเมื่อกดพับ */
-.day-body { display: block; }
-.day.collapsed .day-body { display: none !important; }
+/* 🛠️ แก้ไขการพับ: เมื่อพับแล้ว ให้ซ่อนเฉพาะกล่องแก้ไขข้อมูล (noprint) และรายการงาน (jobs) แต่ยังคงแสดงหัวข้อวันที่ */
+.day.collapsed .day-edit-box { display: none !important; }
 .day.collapsed .jobs { display: none !important; }
-.day.collapsed { background: #f8f9fa; border-color: #bbb; padding-bottom: 10px; height: auto; }
+.day.collapsed { background: #f8f9fa; border-color: #bbb; padding-bottom: 10px; }
+.day.collapsed .day-header { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
 
-/* เลเยอร์รูปภาพแบบยืดหยุ่นอัตโนมัติ (สูงสุดแถวละ 6 รูป พอดี A4) */
+/* เลเยอร์รูปภาพแบบยืดหยุ่นอัตโนมัติ (เรียงเป็นแนวนอนสวยงาม) */
 .grid {
   display: flex;
   flex-wrap: wrap;
@@ -52,7 +57,7 @@ body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px;
 /* จัดกล่องกรอบรูปภาพ */
 .img-container {
   position: relative;
-  flex: 1 1 calc(16.66% - 8px); 
+  flex: 0 0 calc(16.66% - 8px); 
   min-width: 130px;            
   max-width: calc(16.66% - 8px);
   height: 140px;
@@ -98,15 +103,13 @@ body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px;
 }
 .btn-del-img { background: rgba(220, 53, 69, 0.95); }
 
-.grid:has(.img-container:nth-child(-n+5):last-child) .img-container { max-width: none; }
-
 button, input[type=text], textarea, h2, h3, label { font-family:'TH SarabunPSK', sans-serif !important; }
 button{font-size: 15pt; padding:4px 10px; margin:3px; cursor:pointer;}
 input[type=text]{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box; margin-bottom: 5px;}
 textarea{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box; margin-bottom: 5px; resize: vertical;}
 .noprint{margin-bottom:10px; background:#f5f5f5; padding:10px; border-radius:4px;}
 
-.dateTitle{margin-top:5px; color:#333; font-size: 18pt; font-weight: bold; width: 80%;}
+.dateTitle{margin:0; color:#333; font-size: 18pt; font-weight: bold;}
 .title-block {font-size: 16pt; margin:5px 0; white-space: pre-wrap;}
 .title {font-weight: bold; color:#111;}
 .desc-text {color:#444; margin-left: 15px; margin-top: 2px;}
@@ -159,20 +162,19 @@ textarea{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box; margin
 .datepick { font-family: inherit; font-size: 15pt; width: 100%; padding: 6px; box-sizing: border-box; cursor: pointer; }
 .datepick::-webkit-calendar-picker-indicator { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; color: transparent; background: transparent; cursor: pointer; }
 
-/* บังคับพิมพ์ PDF (A4) */
+/* บังคับพิมพ์ PDF (A4) ปรับปรุงเรื่องการจัดเรียงรูปภาพแนวนอน */
 @media print {
   @page { size: A4; margin: 15mm 15mm 15mm 15mm !important; }
   html, body { margin: 0; padding: 0; font-family:'TH SarabunPSK', sans-serif !important; }
   .noprint, .btn-toggle-day, .autosave-toast {display:none !important;}
-  .day-body { display: block !important; }
   .jobs { display: block !important; }
   .img-controls {display:none !important;} 
   .main-title {display:block !important; margin-bottom: 20px; text-align: center;}
-  .day {border:none; padding:0; margin:10px 0; background: transparent !important;}
-  .section {border:none; padding:5px 0; margin:5px 0;}
-  .grid { min-height: 0; }
-  .grid .img-container { max-width: calc(16.66% - 8px) !important; cursor: default; }
-  .grid:has(.img-container:nth-child(-n+5):last-child) .img-container { max-width: none !important; }
+  .day {border:none; padding:0; margin:10px 0; background: transparent !important; page-break-inside: auto;}
+  .section {border:none; padding:5px 0; margin:5px 0; page-break-inside: avoid;}
+  .day-header { border: none; margin-bottom: 5px; padding-bottom: 0; }
+  .grid { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; min-height: 0; gap: 8px !important; }
+  .grid .img-container { flex: 0 0 calc(16.66% - 8px) !important; max-width: calc(16.66% - 8px) !important; width: calc(16.66% - 8px) !important; height: 110px !important; cursor: default; }
   .preview-modal { display: none !important; }
 }
 </style>
@@ -214,7 +216,7 @@ function thaiDate(v){
  return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-// 💾 ระบบเซฟอัตโนมัติและบันทึกเวลา (รองรับช่อง Textarea เพิ่มเติม)
+// 💾 ระบบเซฟอัตโนมัติ
 function autoSave() {
   let data = [];
   let days = document.querySelectorAll('.day');
@@ -242,15 +244,15 @@ function autoSave() {
     reportData: data
   };
   
-  localStorage.setItem('report_system_data_v3', JSON.stringify(wrapper));
+  localStorage.setItem('report_system_data_v4', JSON.stringify(wrapper));
   
   let now = new Date();
   document.getElementById('saveTime').innerText = now.toLocaleTimeString('th-TH');
 }
 
-// 📂 โหลดข้อมูลกลับมาแสดงผล และเช็กเวลาหมดอายุ 1 ชม.
+// 📂 โหลดข้อมูล
 function loadSavedData() {
-  let saved = localStorage.getItem('report_system_data_v3');
+  let saved = localStorage.getItem('report_system_data_v4');
   if (!saved) {
     addDay();
     return;
@@ -261,7 +263,7 @@ function loadSavedData() {
   let oneHour = 60 * 60 * 1000;
   
   if (now - wrapper.timestamp > oneHour) {
-    localStorage.removeItem('report_system_data_v3');
+    localStorage.removeItem('report_system_data_v4');
     addDay();
     return;
   }
@@ -281,7 +283,7 @@ function loadSavedData() {
     }
     
     dayData.jobs.forEach(jobData => {
-      let sec = addJob(day.querySelector('.day-body .noprint button'), false);
+      let sec = addJob(day.querySelector('.day-edit-box button'), false);
       let titleInput = sec.querySelector('.input-title');
       let titleView = sec.querySelector('.title');
       titleInput.value = jobData.title;
@@ -312,7 +314,7 @@ function loadSavedData() {
 
 function clearAllData() {
   if (confirm("คุณต้องการล้างข้อมูลทั้งหมดที่พิมพ์ค้างไว้เพื่อเริ่มทำรายงานชุดใหม่ใช่หรือไม่?")) {
-    localStorage.removeItem('report_system_data_v3');
+    localStorage.removeItem('report_system_data_v4');
     document.getElementById("days").innerHTML = "";
     addDay();
   }
@@ -333,15 +335,17 @@ function addDay(shouldSave = true){
  let day=document.createElement('div');
  day.className='day';
  day.innerHTML=`
- <button class="btn-toggle-day" onclick="toggleDay(this); event.stopPropagation();">[-] พับเก็บ</button>
- <div class="day-body">
-   <div class="noprint">
-   <label><b>เลือกวันที่:</b></label>
-   <div class="date-wrapper"><input type="date" class="datepick"></div>
-   <button onclick="addJob(this)" style="background:#17a2b8; color:white; border:none;">+ เพิ่มงาน</button>
-   <button onclick="this.closest('.day').remove(); autoSave();" style="background:#dc3545; color:white; border:none;">🗑 ลบวันที่นี้</button>
-   </div>
+ <div class="day-header">
    <h3 class="dateTitle">วันที่: (โปรดเลือกวันที่)</h3>
+   <button class="btn-toggle-day" onclick="toggleDay(this)">[-] พับเก็บ</button>
+ </div>
+ <div class="day-edit-box">
+   <div class="noprint">
+     <label><b>เลือกวันที่:</b></label>
+     <div class="date-wrapper"><input type="date" class="datepick"></div>
+     <button onclick="addJob(this)" style="background:#17a2b8; color:white; border:none;">+ เพิ่มงาน</button>
+     <button onclick="this.closest('.day').remove(); autoSave();" style="background:#dc3545; color:white; border:none;">🗑 ลบวันที่นี้</button>
+   </div>
  </div>
  <div class="jobs"></div>
  `;
@@ -614,10 +618,10 @@ function exportToWord(){
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
-// ⏱️ สั่งเซฟข้อมูลอัตโนมัติในเบื้องหลังทุกๆ 3 นาที (180,000 มิลลิวินาที)
+// สั่งบันทึกข้อมูลอัตโนมัติในเบื้องหลังทุกๆ 3 นาที
 setInterval(autoSave, 180000);
 
-// เรียกโหลดข้อมูลเก่าทันทีเมื่อเปิดหน้าเว็บ
+// เรียกโหลดข้อมูลเก่าอัตโนมัติทันทีเมื่อเปิดหน้าเว็บ
 loadSavedData();
 </script>
 </body>
