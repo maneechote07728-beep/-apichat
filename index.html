@@ -5,9 +5,29 @@
 <title>รายงานงานการปฏิบัติงาน</title>
 <style>
 /* บังคับใช้ฟอนต์ TH SarabunPSK ทั่วทั้งหน้าเว็บ */
-body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px; margin:auto; padding:20px; line-height: 1.3; user-select: none;}
+body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px; margin:auto; padding:20px; line-height: 1.3; user-select: none; padding-bottom: 80px;}
 .day{border:2px solid #666; padding:15px; margin:20px 0; border-radius: 6px; position: relative;}
 .section{border:1px solid #ccc; padding:12px; margin:10px 0; border-radius: 4px; transition: background 0.2s;}
+
+/* ปุ่มพับ/กางหมวดหมู่ประจำวัน */
+.btn-toggle-day {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 14pt;
+  cursor: pointer;
+}
+
+/* ส่วนเนื้อหาภายในวันที่จะโดนสั่งซ่อนเมื่อกดพับ */
+.day-body { display: block; }
+.day.collapsed .day-body { display: none; }
+.day.collapsed .jobs { display: none; }
+.day.collapsed { background: #f8f9fa; border-color: #bbb; padding-bottom: 10px; }
 
 /* เลเยอร์รูปภาพแบบยืดหยุ่นอัตโนมัติ (สูงสุดแถวละ 6 รูป พอดี A4) */
 .grid {
@@ -20,7 +40,6 @@ body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px;
   padding: 4px;
 }
 
-/* เอฟเฟกต์ไฮไลท์ตอนกำลังลากรูปภาพมาจ่อ */
 .grid.drag-over, .section.drag-over {
   background: rgba(0, 123, 255, 0.15) !important;
   border: 2px dashed #007bff;
@@ -78,13 +97,12 @@ body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px;
 
 .grid:has(.img-container:nth-child(-n+5):last-child) .img-container { max-width: none; }
 
-/* บังคับฟอนต์ TH SarabunPSK ให้กับปุ่มและช่องกรอกข้อมูลทั้งหมด */
 button, input[type=text], h2, h3, label { font-family:'TH SarabunPSK', sans-serif !important; }
 button{font-size: 15pt; padding:4px 10px; margin:3px; cursor:pointer;}
 input[type=text]{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box; margin-bottom: 5px;}
 .noprint{margin-bottom:10px; background:#f5f5f5; padding:10px; border-radius:4px;}
 
-.dateTitle{margin-top:5px; color:#333; font-size: 18pt; font-weight: bold;}
+.dateTitle{margin-top:5px; color:#333; font-size: 18pt; font-weight: bold; width: 80%;}
 .title-block {font-size: 16pt; margin:5px 0;}
 .title{font-weight: bold; color:#111;}
 
@@ -95,7 +113,26 @@ input[type=text]{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box
   display: none;
 }
 
-/* สไตล์หน้าต่างพรีวิวรูปภาพขยายใหญ่ */
+/* กล่องแจ้งเตือนบันทึกออโต้ที่มุมขวาล่าง */
+.autosave-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(40, 167, 69, 0.95);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 50px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  font-size: 14pt;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  font-weight: bold;
+}
+
+/* หน้าต่างพรีวิวรูป */
 .preview-modal {
   display: none;
   position: fixed;
@@ -117,14 +154,16 @@ input[type=text]{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box
 .datepick { font-family: inherit; font-size: 15pt; width: 100%; padding: 6px; box-sizing: border-box; cursor: pointer; }
 .datepick::-webkit-calendar-picker-indicator { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; color: transparent; background: transparent; cursor: pointer; }
 
-/* บังคับฟอนต์ตอนพิมพ์ PDF (A4) */
+/* บังคับพิมพ์ PDF (A4) */
 @media print {
   @page { size: A4; margin: 15mm 15mm 15mm 15mm !important; }
   html, body { margin: 0; padding: 0; font-family:'TH SarabunPSK', sans-serif !important; }
-  .noprint {display:none !important;}
+  .noprint, .btn-toggle-day, .autosave-toast {display:none !important;}
+  .day-body { display: block !important; }
+  .jobs { display: block !important; }
   .img-controls {display:none !important;} 
   .main-title {display:block !important; margin-bottom: 20px; text-align: center;}
-  .day {border:none; padding:0; margin:10px 0;}
+  .day {border:none; padding:0; margin:10px 0; background: transparent !important;}
   .section {border:none; padding:5px 0; margin:5px 0;}
   .grid { min-height: 0; }
   .grid .img-container { max-width: calc(16.66% - 8px) !important; cursor: default; }
@@ -138,7 +177,7 @@ input[type=text]{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box
 <h2 class="main-title">รายงานการปฏิบัติงาน</h2>
 
 <div class="noprint" style="background:#e9ecef; padding:20px; border-radius:8px; margin-bottom:20px;">
-<h2>ระบบสร้างรายงานการปฏิบัติงาน (บันทึกข้อมูลอัตโนมัติ 💾)</h2>
+<h2>ระบบสร้างรายงานการปฏิบัติงาน</h2>
 <button onclick="addDay()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:4px;">+ เพิ่มวันที่</button>
 <button onclick="window.print()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:4px;">Export PDF (A4)</button>
 <button onclick="exportToWord()" style="background:#20c997; color:white; border:none; padding:10px 15px; border-radius:4px;">Export Word (.doc)</button>
@@ -148,6 +187,11 @@ input[type=text]{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box
 
 <div id="days"></div>
 
+<div id="autosaveToast" class="autosave-toast">
+  <span>บันทึกข้อมูลอัตโนมัติแล้ว 💾</span>
+  <span id="saveTime" style="font-size: 12pt; opacity: 0.85;">--:--:--</span>
+</div>
+
 <div id="previewModal" class="preview-modal" onclick="closePreview()">
   <img id="previewImg" src="" alt="Preview">
 </div>
@@ -155,8 +199,8 @@ input[type=text]{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box
 <script>
 let imgCounter = 0;
 let scrollInterval = null;
+let saveTimer = null;
 
-// ฟังก์ชันแปลงวันที่พ.ศ.
 function thaiDate(v){
  if(!v) return "";
  let parts = v.split('-');
@@ -166,13 +210,14 @@ function thaiDate(v){
  return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-// 💾 ฟังก์ชันสำหรับเซฟข้อมูลทั้งหมดลงเครื่องอัตโนมัติ
+// 💾 ระบบเซฟอัตโนมัติและบันทึกเวลา
 function autoSave() {
   let data = [];
   let days = document.querySelectorAll('.day');
   
   days.forEach(day => {
     let dateValue = day.querySelector('.datepick').value;
+    let isCollapsed = day.classList.contains('collapsed');
     let jobsData = [];
     
     let sections = day.querySelectorAll('.section');
@@ -180,34 +225,52 @@ function autoSave() {
       let titleVal = sec.querySelector('.input-title').value;
       let imgsVal = [];
       let imgs = sec.querySelectorAll('.grid img');
-      imgs.forEach(img => {
-        imgsVal.push(img.src); // เก็บ Base64 ของรูปภาพ
-      });
+      imgs.forEach(img => { imgsVal.push(img.src); });
       jobsData.push({ title: titleVal, images: imgsVal });
     });
     
-    data.push({ date: dateValue, jobs: jobsData });
+    data.push({ date: dateValue, jobs: jobsData, collapsed: isCollapsed });
   });
   
-  localStorage.setItem('report_system_data', JSON.stringify(data));
+  let wrapper = {
+    timestamp: new Date().getTime(), // บันทึกเวลาที่เซฟล่าสุด
+    reportData: data
+  };
+  
+  localStorage.setItem('report_system_data_v2', JSON.stringify(wrapper));
+  
+  // อัปเดตเวลาที่ป้ายแสดงสถานะมุมขวาล่าง
+  let now = new Date();
+  document.getElementById('saveTime').innerText = now.toLocaleTimeString('th-TH');
 }
 
-// 📂 ฟังก์ชันโหลดข้อมูลที่เซฟไว้กลับมาแสดงผลอัตโนมัติ
+// 📂 โหลดข้อมูล และตรวจสอบเงื่อนไขหมดอายุ 1 ชั่วโมง
 function loadSavedData() {
-  let saved = localStorage.getItem('report_system_data');
+  let saved = localStorage.getItem('report_system_data_v2');
   if (!saved) {
-    addDay(); // ถ้าไม่มีข้อมูลเก่า ให้เพิ่ม 1 วันรอไว้เลย
+    addDay();
     return;
   }
   
-  let data = JSON.parse(saved);
+  let wrapper = JSON.parse(saved);
+  let now = new Date().getTime();
+  let oneHour = 60 * 60 * 1000; // 1 ชั่วโมงในหน่วยมิลลิวินาที
+  
+  // ⏳ ตรวจสอบว่าข้อมูลเก่าเกิน 1 ชม. หรือไม่
+  if (now - wrapper.timestamp > oneHour) {
+    localStorage.removeItem('report_system_data_v2');
+    addDay();
+    return;
+  }
+  
+  let data = wrapper.reportData;
   if (data.length === 0) {
     addDay();
     return;
   }
 
   data.forEach(dayData => {
-    let day = addDay(false); // เพิ่มวันแบบยังไม่บันทึกซ้ำ
+    let day = addDay(false); 
     let datepick = day.querySelector(".datepick");
     datepick.value = dayData.date;
     if(dayData.date) {
@@ -226,29 +289,53 @@ function loadSavedData() {
         createImgContainer(imgSrc, grid);
       });
     });
+
+    // คืนค่าการพับหมวดหมู่
+    if (dayData.collapsed) {
+      day.classList.add('collapsed');
+      day.querySelector('.btn-toggle-day').innerText = '[+] กางออก';
+    }
   });
+
+  // แสดงเวลาล่าสุดที่โหลดกลับมาขึ้นมา
+  let savedDate = new Date(wrapper.timestamp);
+  document.getElementById('saveTime').innerText = savedDate.toLocaleTimeString('th-TH') + " (ข้อมูลเดิม)";
 }
 
-// 🗑 ฟังก์ชันล้างข้อมูลทั้งหมดเมื่อต้องการเริ่มรายงานใหม่
 function clearAllData() {
   if (confirm("คุณต้องการล้างข้อมูลทั้งหมดที่พิมพ์ค้างไว้เพื่อเริ่มทำรายงานชุดใหม่ใช่หรือไม่?")) {
-    localStorage.removeItem('report_system_data');
+    localStorage.removeItem('report_system_data_v2');
     document.getElementById("days").innerHTML = "";
     addDay();
   }
+}
+
+// ฟังก์ชันเปิด-ปิดพับหมวดหมู่
+function toggleDay(btn) {
+  let day = btn.closest('.day');
+  day.classList.toggle('collapsed');
+  if (day.classList.contains('collapsed')) {
+    btn.innerText = '[+] กางออก';
+  } else {
+    btn.innerText = '[-] พับเก็บ';
+  }
+  autoSave();
 }
 
 function addDay(shouldSave = true){
  let day=document.createElement('div');
  day.className='day';
  day.innerHTML=`
- <div class="noprint">
- <label><b>เลือกวันที่:</b></label>
- <div class="date-wrapper"><input type="date" class="datepick"></div>
- <button onclick="addJob(this)" style="background:#17a2b8; color:white; border:none;">+ เพิ่มงาน</button>
- <button onclick="this.closest('.day').remove(); autoSave();" style="background:#dc3545; color:white; border:none;">🗑 ลบวันที่นี้</button>
+ <button class="btn-toggle-day" onclick="toggleDay(this)">[-] พับเก็บ</button>
+ <div class="day-body">
+   <div class="noprint">
+   <label><b>เลือกวันที่:</b></label>
+   <div class="date-wrapper"><input type="date" class="datepick"></div>
+   <button onclick="addJob(this)" style="background:#17a2b8; color:white; border:none;">+ เพิ่มงาน</button>
+   <button onclick="this.closest('.day').remove(); autoSave();" style="background:#dc3545; color:white; border:none;">🗑 ลบวันที่นี้</button>
+   </div>
+   <h3 class="dateTitle">วันที่: (โปรดเลือกวันที่)</h3>
  </div>
- <h3 class="dateTitle">วันที่: (โปรดเลือกวันที่)</h3>
  <div class="jobs"></div>
  `;
 
@@ -263,11 +350,12 @@ function addDay(shouldSave = true){
 }
 
 function addJob(btn, shouldSave = true){
- let jobs=btn.closest('.day').querySelector('.jobs');
- let sec=document.createElement('div');
- sec.className='section';
+ let day = btn.closest('.day');
+ let jobs = day.querySelector('.jobs');
+ let sec = document.createElement('div');
+ sec.className = 'section';
 
- sec.innerHTML=`
+ sec.innerHTML = `
  <div class="noprint" style="border-left: 3px solid #17a2b8; padding-left: 10px;">
  <input type="text" class="input-title" placeholder="หัวข้อภารกิจ / ชื่องาน">
  <input type="file" multiple accept="image/*" style="margin-top:5px;">
@@ -282,7 +370,6 @@ function addJob(btn, shouldSave = true){
 
  titleInput.addEventListener('input',()=>{ 
    titleView.innerText = '- ' + titleInput.value; 
-   autoSave();
  });
 
  let fileInput = sec.querySelector('input[type=file]');
@@ -327,9 +414,7 @@ function addJob(btn, shouldSave = true){
       r.onload = x => { 
          createImgContainer(x.target.result, grid); 
          loadedCount++;
-         if(loadedCount === newFiles.length) {
-            autoSave();
-         }
+         if(loadedCount === newFiles.length) { autoSave(); }
       };
       r.readAsDataURL(file);
    });
@@ -410,23 +495,15 @@ function handleTouchStart(e) {
 function handleTouchMove(e) {
   if (!activeDragElement) return;
   let touch = e.touches[0];
-  
-  if (Math.abs(touch.clientX - touchStartX) > 10 || Math.abs(touch.clientY - touchStartY) > 10) {
-     isMoved = true;
-  }
-  
+  if (Math.abs(touch.clientX - touchStartX) > 10 || Math.abs(touch.clientY - touchStartY) > 10) { isMoved = true; }
   if (!isMoved) return;
   e.preventDefault();
   handleAutoScroll(touch.clientY);
-
   let elementOver = document.elementFromPoint(touch.clientX, touch.clientY);
   if (!elementOver) return;
-
   document.querySelectorAll('.grid').forEach(g => g.classList.remove('drag-over'));
   let targetGrid = elementOver.closest('.grid');
-  if (targetGrid) {
-     targetGrid.classList.add('drag-over');
-  }
+  if (targetGrid) { targetGrid.classList.add('drag-over'); }
 }
 
 function handleTouchEnd(e) {
@@ -434,17 +511,13 @@ function handleTouchEnd(e) {
   stopAutoScroll();
   if (!activeDragElement) return;
   if (!isMoved) { activeDragElement = null; return; }
-  
   e.preventDefault();
   let touch = e.changedTouches[0];
   let elementOver = document.elementFromPoint(touch.clientX, touch.clientY);
-  
   document.querySelectorAll('.grid').forEach(g => g.classList.remove('drag-over'));
-  
   if (elementOver) {
      let targetGrid = elementOver.closest('.grid');
      let targetImgContainer = elementOver.closest('.img-container');
-     
      if (targetGrid) {
         if (targetImgContainer && targetImgContainer !== activeDragElement) {
            let rect = targetImgContainer.getBoundingClientRect();
@@ -460,19 +533,11 @@ function handleTouchEnd(e) {
 }
 
 function handleAutoScroll(clientY) {
-  let scrollZone = 80;
-  let speed = 12;
-  stopAutoScroll();
-  if (clientY < scrollZone) {
-     scrollInterval = setInterval(() => { window.scrollBy(0, -speed); }, 15);
-  } else if (clientY > window.innerHeight - scrollZone) {
-     scrollInterval = setInterval(() => { window.scrollBy(0, speed); }, 15);
-  }
+  let scrollZone = 80; let speed = 12; stopAutoScroll();
+  if (clientY < scrollZone) { scrollInterval = setInterval(() => { window.scrollBy(0, -speed); }, 15); } 
+  else if (clientY > window.innerHeight - scrollZone) { scrollInterval = setInterval(() => { window.scrollBy(0, speed); }, 15); }
 }
-
-function stopAutoScroll() {
-  if (scrollInterval) { clearInterval(scrollInterval); scrollInterval = null; }
-}
+function stopAutoScroll() { if (scrollInterval) { clearInterval(scrollInterval); scrollInterval = null; } }
 
 function exportToWord(){
     let days = document.querySelectorAll('.day');
@@ -485,15 +550,13 @@ function exportToWord(){
         h3 { font-family: 'TH SarabunPSK', sans-serif; color: #000; margin-top: 20px; margin-bottom: 10px; font-size: 18pt; font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
         .title-block { font-family: 'TH SarabunPSK', sans-serif; font-size: 16pt; margin: 8px 0; font-weight: normal; }
         .title { font-weight: bold; }
-        
         .word-table { width: 100%; border-collapse: collapse; border: none; margin-top: 5px; margin-bottom: 15px; }
         .word-table td { border: none; padding: 4px; text-align: center; vertical-align: middle; width: 16.66%; }
         .word-img { width: 105px; height: 110px; border: 1px solid #999; }
     `;
 
     let htmlContent = '<h2>รายงานการปฏิบัติงาน</h2>';
-    let imageParts = "";
-    let imgLocationCounter = 1;
+    let imageParts = ""; let imgLocationCounter = 1;
 
     days.forEach(day => {
         htmlContent += `<h3>${day.querySelector('.dateTitle').innerText}</h3>`;
@@ -501,16 +564,11 @@ function exportToWord(){
         sections.forEach(sec => {
             let jobTitle = sec.querySelector('.title').innerText;
             htmlContent += `<div class="title-block"><span class="title">${jobTitle}</span></div>`;
-            
             let imgs = sec.querySelectorAll('.grid img');
             if(imgs.length > 0) {
                 htmlContent += '<table class="word-table"><tr>';
-                
                 imgs.forEach((img, index) => {
-                    if (index > 0 && index % 6 === 0) {
-                        htmlContent += '</tr><tr>';
-                    }
-
+                    if (index > 0 && index % 6 === 0) { htmlContent += '</tr><tr>'; }
                     let base64Data = img.src;
                     if (base64Data.startsWith("data:image")) {
                         let parts = base64Data.split(';base64,');
@@ -518,47 +576,28 @@ function exportToWord(){
                         let rawBase64 = parts[1];
                         let extension = mimeType.split('/')[1] || 'png';
                         let contentLocation = `file:///C:/img_report_${imgLocationCounter}.${extension}`;
-
                         htmlContent += `<td><img class="word-img" src="${contentLocation}" width="105" height="110" /></td>`;
-
-                        imageParts += `--NEXT.OUR.REPORT\n`;
-                        imageParts += `Content-Location: ${contentLocation}\n`;
-                        imageParts += `Content-Transfer-Encoding: base64\n`;
-                        imageParts += `Content-Type: ${mimeType}\n\n`;
-                        imageParts += `${rawBase64}\n\n`;
-
+                        imageParts += `--NEXT.OUR.REPORT\nContent-Location: ${contentLocation}\nContent-Transfer-Encoding: base64\nContent-Type: ${mimeType}\n\n${rawBase64}\n\n`;
                         imgLocationCounter++;
                     }
                 });
-                
                 let remainingCells = (6 - (imgs.length % 6)) % 6;
-                for (let i = 0; i < remainingCells; i++) {
-                    htmlContent += '<td></td>';
-                }
-                
+                for (let i = 0; i < remainingCells; i++) { htmlContent += '<td></td>'; }
                 htmlContent += '</tr></table>';
             }
         });
     });
 
-    let mhtml = `MIME-Version: 1.0\n`;
-    mhtml += `Content-Type: multipart/related; boundary="NEXT.OUR.REPORT"\n\n`;
-    mhtml += `--NEXT.OUR.REPORT\n`;
-    mhtml += `Content-Type: text/html; charset="utf-8"\n\n`;
-    mhtml += `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n<style>${style}</style>\n</head>\n<body>\n${htmlContent}\n</body>\n</html>\n\n`;
-    mhtml += imageParts;
-    mhtml += `--NEXT.OUR.REPORT--`;
-
+    let mhtml = `MIME-Version: 1.0\nContent-Type: multipart/related; boundary="NEXT.OUR.REPORT"\n\n--NEXT.OUR.REPORT\nContent-Type: text/html; charset="utf-8"\n\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n<style>${style}</style>\n</head>\n<body>\n${htmlContent}\n</body>\n</html>\n\n${imageParts}--NEXT.OUR.REPORT--`;
     let blob = new Blob([mhtml], { type: 'application/msword' });
     let url = URL.createObjectURL(blob);
     let a = document.createElement('a');
-    a.href = url;
-    a.download = 'รายงานการปฏิบัติงาน.doc';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    a.href = url; a.download = 'รายงานการปฏิบัติงาน.doc';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
+
+// ⏱️ สั่งเซฟข้อมูลอัตโนมัติในทุกๆ 3 นาที (180,000 มิลลิวินาที)
+setInterval(autoSave, 180000);
 
 // เรียกโหลดข้อมูลเก่าทันทีเมื่อเปิดหน้าเว็บ
 loadSavedData();
