@@ -2,12 +2,56 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<title>รายงานงานการปฏิบัติงาน</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบสร้างรายงานการปฏิบัติงาน</title>
 <style>
 /* บังคับใช้ฟอนต์ TH SarabunPSK ทั่วทั้งหน้าเว็บ */
-body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px; margin:auto; padding:20px; line-height: 1.3; user-select: none; padding-bottom: 80px;}
-.day{border:2px solid #666; padding:15px; margin:20px 0; border-radius: 6px; position: relative;}
-.section{border:1px solid #ccc; padding:12px; margin:10px 0; border-radius: 4px; transition: background 0.2s;}
+body {
+  font-family: 'TH SarabunPSK', sans-serif;
+  font-size: 16pt;
+  max-width: 1100px;
+  margin: auto;
+  padding: 15px;
+  line-height: 1.3;
+  user-select: none;
+  padding-bottom: 80px;
+  background-color: #fdfdfd;
+}
+
+.day {
+  border: 2px solid #666;
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 6px;
+  position: relative;
+  background: #fff;
+}
+.section {
+  border: 1px solid #ccc;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 4px;
+  transition: background 0.2s;
+  background: #fafafa;
+}
+
+/* 🕒 1. ระบบนาฬิกาป๊อปอัปลอย (Floating Clock Widget) มุมขวาบนของเว็บ */
+.floating-clock {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  background: linear-gradient(135deg, #17a2b8, #117a8b);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 14pt;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
 /* จัดส่วนหัวข้อของวัน */
 .day-header {
@@ -17,21 +61,7 @@ body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px;
   margin-bottom: 10px;
   border-bottom: 1px dashed #ccc;
   padding-bottom: 8px;
-}
-
-/* ส่วนแสดงเวลาปัจจุบันที่มุมขวาบน */
-.day-actions {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-.live-clock {
-  font-size: 13pt;
-  color: #666;
-  background: #e9ecef;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-weight: bold;
+  gap: 10px;
 }
 
 /* ปุ่มพับ/กางหมวดหมู่ประจำวัน */
@@ -43,16 +73,17 @@ body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px;
   border-radius: 4px;
   font-size: 14pt;
   cursor: pointer;
+  white-space: nowrap;
 }
 .btn-toggle-day:hover { background: #5a6268; }
 
-/* เมื่อพับแล้ว ให้ซ่อนเฉพาะกล่องแก้ไขข้อมูล (noprint) และรายการงาน (jobs) แต่ยังคงแสดงหัวข้อวันที่และเวลา */
+/* เมื่อพับแล้ว ให้ซ่อนเฉพาะกล่องแก้ไขข้อมูล (noprint) และรายการงาน (jobs) แต่ยังคงแสดงหัวข้อวันที่ชัดเจน */
 .day.collapsed .day-edit-box { display: none !important; }
 .day.collapsed .jobs { display: none !important; }
 .day.collapsed { background: #f8f9fa; border-color: #bbb; padding-bottom: 10px; }
 .day.collapsed .day-header { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
 
-/* เลเยอร์รูปภาพแบบยืดหยุ่นอัตโนมัติ */
+/* เลเยอร์รูปภาพแบบยืดหยุ่นอัตโนมัติ (Responsive Grid) */
 .grid {
   display: flex;
   flex-wrap: wrap;
@@ -69,13 +100,13 @@ body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px;
   border-radius: 4px;
 }
 
-/* จัดกล่องกรอบรูปภาพ */
+/* จัดกล่องกรอบรูปภาพ (แสดงผลหน้าจอคอมพิวเตอร์ แถวละ 6 รูป) */
 .img-container {
   position: relative;
   flex: 0 0 calc(16.66% - 8px); 
-  min-width: 130px;            
+  min-width: 120px;            
   max-width: calc(16.66% - 8px);
-  height: 140px;
+  height: 130px;
   cursor: grab;
   touch-action: none;
 }
@@ -100,7 +131,6 @@ body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px;
   z-index: 10;
 }
 .img-container:hover .img-controls { display: flex; }
-@media (max-width: 768px) { .img-controls { display: flex; opacity: 0.8; } }
 
 .btn-ctrl {
   color: white;
@@ -119,15 +149,24 @@ body{font-family:'TH SarabunPSK', sans-serif; font-size: 16pt; max-width:1100px;
 .btn-del-img { background: rgba(220, 53, 69, 0.95); }
 
 button, input[type=text], textarea, h2, h3, label { font-family:'TH SarabunPSK', sans-serif !important; }
-button{font-size: 15pt; padding:4px 10px; margin:3px; cursor:pointer;}
-input[type=text]{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box; margin-bottom: 5px;}
-textarea{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box; margin-bottom: 5px; resize: vertical;}
-.noprint{margin-bottom:10px; background:#f5f5f5; padding:10px; border-radius:4px;}
+button { font-size: 15pt; padding: 5px 12px; margin: 3px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; }
+input[type=text] { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px; }
+textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; margin-bottom: 5px; resize: vertical; border: 1px solid #ccc; border-radius: 4px; }
+.noprint { margin-bottom: 10px; background: #f5f5f5; padding: 12px; border-radius: 4px; }
 
-.dateTitle{margin:0; color:#333; font-size: 18pt; font-weight: bold;}
-.title-block {font-size: 16pt; margin:5px 0; white-space: pre-wrap;}
-.title {font-weight: bold; color:#111;}
-.desc-text {color:#444; margin-left: 15px; margin-top: 2px;}
+/* จัดกลุ่มปุ่มด้านบนเมนู */
+.menu-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.menu-buttons button { margin: 0; }
+
+.dateTitle { margin: 0; color: #333; font-size: 18pt; font-weight: bold; }
+.title-block { font-size: 16pt; margin: 5px 0; white-space: pre-wrap; }
+.title { font-weight: bold; color: #111; }
+.desc-text { color: #444; margin-left: 15px; margin-top: 2px; }
 
 .main-title {
   text-align: center;
@@ -167,26 +206,56 @@ textarea{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box; margin
   cursor: zoom-out;
 }
 .preview-modal img {
-  max-width: 90%;
-  max-height: 90%;
+  max-width: 95%;
+  max-height: 95%;
   box-shadow: 0 4px 20px rgba(0,0,0,0.5);
   border-radius: 4px;
 }
 
 .date-wrapper { position: relative; width: 100%; margin-bottom: 10px; cursor: pointer; }
-.datepick { font-family: inherit; font-size: 15pt; width: 100%; padding: 6px; box-sizing: border-box; cursor: pointer; }
+.datepick { font-family: inherit; font-size: 15pt; width: 100%; padding: 6px; box-sizing: border-box; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; }
 .datepick::-webkit-calendar-picker-indicator { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; color: transparent; background: transparent; cursor: pointer; }
+
+/* 📱 2. CSS Responsive ปรับการแสดงผลสำหรับมือถือ (สมาร์ทโฟน/แท็บเล็ต) */
+@media (max-width: 768px) {
+  body { padding: 10px; font-size: 15pt; padding-bottom: 90px; }
+  .floating-clock { top: auto; bottom: 20px; left: 20px; right: auto; font-size: 12pt; padding: 4px 12px; } /* บนมือถือย้ายนาฬิกามาไว้ล่างซ้าย ไม่ให้บังเมนู */
+  .autosave-toast { padding: 8px 14px; font-size: 12pt; bottom: 20px; right: 10px; }
+  .menu-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .menu-buttons button:last-child { grid-column: span 2; } /* ปุ่มล้างข้อมูลอยู่แถวล่างสุดแบบเต็มความกว้าง */
+  .day { padding: 10px; margin: 12px 0; }
+  .dateTitle { font-size: 16pt; }
+  .btn-toggle-day { font-size: 12pt; padding: 4px 10px; }
+  
+  /* บนมือถือปรับรูปภาพให้เรียงแถวละ 3 รูป เพื่อให้เห็นภาพใหญ่ชัดเจนขึ้น */
+  .img-container {
+    flex: 0 0 calc(33.33% - 6px);
+    max-width: calc(33.33% - 6px);
+    height: 100px;
+    min-width: 0;
+  }
+  .img-controls { display: flex; opacity: 0.9; } /* ให้ปุ่มลบรูปโชว์บนมือถือเลย ไม่ต้องรอ Hover */
+}
+
+@media (max-width: 480px) {
+  /* มือถือจอเล็กมาก ปรับรูปเรียงแถวละ 2 รูป */
+  .img-container {
+    flex: 0 0 calc(50% - 4px);
+    max-width: calc(50% - 4px);
+    height: 110px;
+  }
+}
 
 /* บังคับพิมพ์ PDF (A4) */
 @media print {
   @page { size: A4; margin: 15mm 15mm 15mm 15mm !important; }
-  html, body { margin: 0; padding: 0; font-family:'TH SarabunPSK', sans-serif !important; }
-  .noprint, .btn-toggle-day, .autosave-toast, .live-clock {display:none !important;}
+  html, body { margin: 0; padding: 0; font-family:'TH SarabunPSK', sans-serif !important; background: #fff; }
+  .noprint, .btn-toggle-day, .autosave-toast, .floating-clock { display: none !important; }
   .jobs { display: block !important; }
-  .img-controls {display:none !important;} 
-  .main-title {display:block !important; margin-bottom: 20px; text-align: center;}
-  .day {border:none; padding:0; margin:10px 0; background: transparent !important; page-break-inside: auto;}
-  .section {border:none; padding:5px 0; margin:5px 0; page-break-inside: avoid;}
+  .img-controls { display: none !important; } 
+  .main-title { display: block !important; margin-bottom: 20px; text-align: center; }
+  .day { border: none; padding: 0; margin: 10px 0; background: transparent !important; page-break-inside: auto; }
+  .section { border: none; padding: 5px 0; margin: 5px 0; page-break-inside: avoid; background: transparent; }
   .day-header { border: none; margin-bottom: 5px; padding-bottom: 0; }
   .grid { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; min-height: 0; gap: 8px !important; }
   .grid .img-container { flex: 0 0 calc(16.66% - 8px) !important; max-width: calc(16.66% - 8px) !important; width: calc(16.66% - 8px) !important; height: 110px !important; cursor: default; }
@@ -196,15 +265,21 @@ textarea{font-size: 16pt; width:100%; padding:6px; box-sizing:border-box; margin
 </head>
 <body>
 
+<div class="floating-clock" id="floatingClock">
+  <span>⏱ เวลาปัจจุบัน:</span>
+  <span id="liveClockTime">--:--:--</span>
+</div>
+
 <h2 class="main-title">รายงานการปฏิบัติงาน</h2>
 
-<div class="noprint" style="background:#e9ecef; padding:20px; border-radius:8px; margin-bottom:20px;">
-<h2>ระบบสร้างรายงานการปฏิบัติงาน</h2>
-<button onclick="addDay()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:4px;">+ เพิ่มวันที่</button>
-<button onclick="window.print()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:4px;">Export PDF (A4)</button>
-<button onclick="exportToWord()" style="background:#20c997; color:white; border:none; padding:10px 15px; border-radius:4px;">Export Word (.doc)</button>
-<button onclick="clearAllData()" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:4px; float: right;">🗑 ล้างข้อมูลทั้งหมด</button>
-<div style="clear: both;"></div>
+<div class="noprint" style="background:#e9ecef; padding:15px; border-radius:8px; margin-bottom:20px;">
+<h2 style="margin-top:0; margin-bottom:10px;">ระบบสร้างรายงานการปฏิบัติงาน</h2>
+<div class="menu-buttons">
+  <button onclick="addDay()" style="background:#28a745; color:white; border:none;">+ เพิ่มวันที่</button>
+  <button onclick="window.print()" style="background:#007bff; color:white; border:none;">Export PDF (A4)</button>
+  <button onclick="exportToWord()" style="background:#20c997; color:white; border:none;">Export Word (.doc)</button>
+  <button onclick="clearAllData()" style="background:#dc3545; color:white; border:none; margin-left: auto;" id="btnClearAll">🗑 ล้างข้อมูลทั้งหมด</button>
+</div>
 </div>
 
 <div id="days"></div>
@@ -231,18 +306,15 @@ function thaiDate(v){
  return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-// ฟังก์ชันอัปเดตเวลานาฬิกาปัจจุบันของแต่ละกล่อง
-function updateLiveClocks() {
+// 🕒 ระบบอัปเดตเวลานาฬิกาป๊อปอัปลอยแบบ Real-time
+function updateLiveClock() {
   let now = new Date();
-  let timeString = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " น.";
-  document.querySelectorAll('.live-clock').forEach(clock => {
-    clock.innerText = timeString;
-  });
+  document.getElementById('liveClockTime').innerText = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " น.";
 }
-// สั่งให้นาฬิกาเดินทุกๆ 1 วินาที
-setInterval(updateLiveClocks, 1000);
+setInterval(updateLiveClock, 1000);
+updateLiveClock();
 
-// 💾 ระบบเซฟอัตโนมัติ
+// 💾 ระบบเซฟอัตโนมัติลงคอมพิวเตอร์/มือถือ
 function autoSave() {
   let data = [];
   let days = document.querySelectorAll('.day');
@@ -270,15 +342,15 @@ function autoSave() {
     reportData: data
   };
   
-  localStorage.setItem('report_system_data_v5', JSON.stringify(wrapper));
+  localStorage.setItem('report_system_data_v6', JSON.stringify(wrapper));
   
   let now = new Date();
   document.getElementById('saveTime').innerText = now.toLocaleTimeString('th-TH');
 }
 
-// 📂 โหล่งข้อมูลเก่า
+// 📂 โหลดข้อมูลที่เคยพิมพ์ค้างไว้กลับมาทำงานต่ออัตโนมัติ
 function loadSavedData() {
-  let saved = localStorage.getItem('report_system_data_v5');
+  let saved = localStorage.getItem('report_system_data_v6');
   if (!saved) {
     addDay();
     return;
@@ -289,7 +361,7 @@ function loadSavedData() {
   let oneHour = 60 * 60 * 1000;
   
   if (now - wrapper.timestamp > oneHour) {
-    localStorage.removeItem('report_system_data_v5');
+    localStorage.removeItem('report_system_data_v6');
     addDay();
     return;
   }
@@ -336,12 +408,11 @@ function loadSavedData() {
 
   let savedDate = new Date(wrapper.timestamp);
   document.getElementById('saveTime').innerText = savedDate.toLocaleTimeString('th-TH') + " (โหลดข้อมูลเดิม)";
-  updateLiveClocks();
 }
 
 function clearAllData() {
   if (confirm("คุณต้องการล้างข้อมูลทั้งหมดที่พิมพ์ค้างไว้เพื่อเริ่มทำรายงานชุดใหม่ใช่หรือไม่?")) {
-    localStorage.removeItem('report_system_data_v5');
+    localStorage.removeItem('report_system_data_v6');
     document.getElementById("days").innerHTML = "";
     addDay();
   }
@@ -364,10 +435,7 @@ function addDay(shouldSave = true){
  day.innerHTML=`
  <div class="day-header">
    <h3 class="dateTitle">วันที่: (โปรดเลือกวันที่)</h3>
-   <div class="day-actions">
-     <div class="live-clock">--:--:-- น.</div>
-     <button class="btn-toggle-day" onclick="toggleDay(this)">[-] พับเก็บ</button>
-   </div>
+   <button class="btn-toggle-day" onclick="toggleDay(this)">[-] พับเก็บ</button>
  </div>
  <div class="day-edit-box">
    <div class="noprint">
@@ -386,7 +454,6 @@ function addDay(shouldSave = true){
  });
 
  document.getElementById("days").appendChild(day);
- updateLiveClocks();
  if(shouldSave) autoSave();
  return day;
 }
@@ -401,7 +468,7 @@ function addJob(btn, shouldSave = true){
  <div class="noprint" style="border-left: 3px solid #17a2b8; padding-left: 10px;">
  <input type="text" class="input-title" placeholder="หัวข้อภารกิจ / ชื่องาน">
  <textarea class="input-desc" placeholder="พิมพ์รายละเอียดการปฏิบัติงานเพิ่มเติม..." rows="3"></textarea>
- <input type="file" multiple accept="image/*" style="margin-top:5px;">
+ <input type="file" multiple accept="image/*" style="margin-top:5px; width: 100%;">
  <button onclick="this.closest('.section').remove(); autoSave();" style="background:#6c757d; color:white; border:none; margin-top:5px;">🗑 ลบงานนี้</button>
  </div>
  <div class="title-block"><span class="title">- </span><div class="desc-text"></div></div>
@@ -649,10 +716,10 @@ function exportToWord(){
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
-// สั่งบันทึกข้อมูลอัตโนมัติในเบื้องหลังทุกๆ 3 นาที
+// สั่งเซฟอัตโนมัติเบื้องหลังทุกๆ 3 นาที
 setInterval(autoSave, 180000);
 
-// เรียกโหลดข้อมูลเก่าอัตโนมัติทันทีเมื่อเปิดหน้าเว็บ
+// โหลดข้อมูลเก่าอัตโนมัติทันทีที่เปิดหน้าจอ
 loadSavedData();
 </script>
 </body>
