@@ -175,7 +175,7 @@ textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; m
   display: none;
 }
 
-/* 💾 กล่องแจ้งเตือนบันทึกออโต้ (สำหรับคอมพิวเตอร์ลอยมุมขวาล่าง) */
+/* 💾 กล่องแจ้งเตือนบันทึกออโต้แบบใหม่: เริ่มต้นซ่อนไว้ และตั้งค่า Transition นุ่มๆ */
 .autosave-toast {
   position: fixed;
   bottom: 20px;
@@ -190,8 +190,16 @@ textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; m
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.3s ease;
   font-weight: bold;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+/* คลาสสำหรับสั่งให้แสดงกล่องแจ้งเตือน */
+.autosave-toast.show {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* หน้าต่างพรีวิวรูป */
@@ -307,7 +315,7 @@ textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; m
 <div id="days"></div>
 
 <div id="autosaveToast" class="autosave-toast">
-  <span>บันทึกข้อมูลอัตโนมัติแล้ว 💾</span>
+  <span id="saveStatusText">บันทึกข้อมูลอัตโนมัติแล้ว 💾</span>
   <span id="saveTime" style="font-size: 11pt; opacity: 0.85;">--:--:--</span>
 </div>
 
@@ -318,6 +326,7 @@ textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; m
 <script>
 let imgCounter = 0;
 let scrollInterval = null;
+let toastTimeout = null; // ตัวแปรคุมเวลาการปิดป้าย Toast
 
 function thaiDate(v){
  if(!v) return "";
@@ -336,7 +345,25 @@ function updateLiveClock() {
 setInterval(updateLiveClock, 1000);
 updateLiveClock();
 
-// 💾 ระบบเซฟอัตโนมัติลงเครื่อง
+// 💾 ฟังก์ชันสำหรับสั่งแสดงป้ายแจ้งเตือนเป็นเวลา 3 วินาทีแล้วจางหายไป
+function showToast(text, timeStr) {
+  let toast = document.getElementById('autosaveToast');
+  document.getElementById('saveStatusText').innerText = text;
+  document.getElementById('saveTime').innerText = timeStr;
+  
+  // ล้าง Timeout เดิมออกก่อนหากมีการเซฟรัวๆ ติดต่อกัน
+  if (toastTimeout) clearTimeout(toastTimeout);
+  
+  // สั่งแสดงป้ายแจ้งเตือน
+  toast.classList.add('show');
+  
+  // ตั้งเวลานับถอยหลัง 3 วินาที (3000ms) ให้จางหายไป
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3000);
+}
+
+// 💾 ระบบเซฟอัตโนมัติลงเครื่อง (เซฟทันทีเมื่อมีการเปลี่ยนแปลง)
 function autoSave() {
   let data = [];
   let days = document.querySelectorAll('.day');
@@ -367,14 +394,14 @@ function autoSave() {
   localStorage.setItem('report_system_data_v6', JSON.stringify(wrapper));
   
   let now = new Date();
-  document.getElementById('saveTime').innerText = now.toLocaleTimeString('th-TH');
+  showToast("บันทึกข้อมูลอัตโนมัติแล้ว 💾", now.toLocaleTimeString('th-TH'));
 }
 
-// 📂 โหลดข้อมูลเก่าที่เคยพิมพ์ค้างไว้กลับคืนมา
+// 📂 โหลดข้อมูลเก่าที่เคยพิมพ์ค้างไว้กลับคืนมาเมื่อเข้าหน้าเว็บ
 function loadSavedData() {
   let saved = localStorage.getItem('report_system_data_v6');
   if (!saved) {
-    addDay();
+    addDay(false);
     return;
   }
   
@@ -384,13 +411,13 @@ function loadSavedData() {
   
   if (now - wrapper.timestamp > oneHour) {
     localStorage.removeItem('report_system_data_v6');
-    addDay();
+    addDay(false);
     return;
   }
   
   let data = wrapper.reportData;
   if (data.length === 0) {
-    addDay();
+    addDay(false);
     return;
   }
 
@@ -418,7 +445,7 @@ function loadSavedData() {
       
       let grid = sec.querySelector('.grid');
       jobData.images.forEach(imgSrc => {
-        createImgContainer(imgSrc, grid);
+        createImgContainer(imgSrc, grid, false);
       });
     });
 
@@ -428,15 +455,16 @@ function loadSavedData() {
     }
   });
 
+  // เมื่อเข้าหน้าเว็บ สั่งแสดงป้ายแจ้งเตือนว่าโหลดและเซฟครั้งล่าสุดตอนกี่โมง ค้างไว้ 3 วินาทีแล้วหายไป
   let savedDate = new Date(wrapper.timestamp);
-  document.getElementById('saveTime').innerText = savedDate.toLocaleTimeString('th-TH') + " (โหลดข้อมูลเดิม)";
+  showToast("โหลดข้อมูลบันทึกล่าสุด: ", savedDate.toLocaleTimeString('th-TH'));
 }
 
 function clearAllData() {
   if (confirm("คุณต้องการล้างข้อมูลทั้งหมดที่พิมพ์ค้างไว้เพื่อเริ่มทำรายงานชุดใหม่ใช่หรือไม่?")) {
     localStorage.removeItem('report_system_data_v6');
     document.getElementById("days").innerHTML = "";
-    addDay();
+    addDay(true);
   }
 }
 
@@ -502,11 +530,13 @@ function addJob(btn, shouldSave = true){
  let descInput = sec.querySelector('.input-desc');
  let descView = sec.querySelector('.desc-text');
 
+ // ⚡ บันทึกทันทีเมื่อพิมพ์หัวข้อ
  titleInput.addEventListener('input',()=>{ 
    titleView.innerText = '- ' + titleInput.value; 
    autoSave();
  });
  
+ // ⚡ บันทึกทันทีเมื่อพิมพ์รายละเอียด
  descInput.addEventListener('input',()=>{ 
    descView.innerText = descInput.value; 
    autoSave();
@@ -552,7 +582,7 @@ function addJob(btn, shouldSave = true){
    newFiles.forEach(file => {
       let r = new FileReader();
       r.onload = x => { 
-         createImgContainer(x.target.result, grid); 
+         createImgContainer(x.target.result, grid, false); 
          loadedCount++;
          if(loadedCount === newFiles.length) { autoSave(); }
       };
@@ -566,7 +596,7 @@ function addJob(btn, shouldSave = true){
  return sec;
 }
 
-function createImgContainer(src, targetGrid) {
+function createImgContainer(src, targetGrid, shouldSave = true) {
    imgCounter++;
    let container = document.createElement('div');
    container.className = 'img-container';
@@ -609,6 +639,7 @@ function createImgContainer(src, targetGrid) {
    container.appendChild(controls);
    
    targetGrid.appendChild(container);
+   if(shouldSave) autoSave();
 }
 
 function openPreview(src) {
@@ -737,9 +768,6 @@ function exportToWord(){
     a.href = url; a.download = 'รายงานการปฏิบัติงาน.doc';
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
-
-// สั่งบันทึกข้อมูลอัตโนมัติในเบื้องหลังทุกๆ 3 นาที
-setInterval(autoSave, 180000);
 
 // โหลดข้อมูลเก่าอัตโนมัติเมื่อเปิดเว็บบราวเซอร์ขึ้นมา
 loadSavedData();
