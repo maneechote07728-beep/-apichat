@@ -297,6 +297,72 @@ textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; m
 .datepick { font-family: inherit; font-size: 15pt; width: 100%; padding: 6px; box-sizing: border-box; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; }
 .datepick::-webkit-calendar-picker-indicator { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; color: transparent; background: transparent; cursor: pointer; }
 
+/* 👁 สไตล์สำหรับการเปิด "โหมดพรีวิวข้อมูลทั้งหมด" เสมือนใบงานจริง */
+body.preview-mode-active {
+  background-color: #fff;
+  padding: 40px;
+}
+body.preview-mode-active .noprint,
+body.preview-mode-active .btn-toggle-day,
+body.preview-mode-active .day-edit-box,
+body.preview-mode-active .img-controls,
+body.preview-mode-active .floating-clock,
+body.preview-mode-active .web-watermark {
+  display: none !important;
+}
+body.preview-mode-active .main-title {
+  display: block !important;
+  margin-bottom: 25px;
+}
+body.preview-mode-active .day {
+  border: none;
+  padding: 0;
+  margin: 15px 0;
+  background: transparent !important;
+}
+body.preview-mode-active .section {
+  border: none;
+  padding: 5px 0;
+  margin: 5px 0;
+  background: transparent !important;
+}
+body.preview-mode-active .day-header {
+  border: none;
+  margin-bottom: 5px;
+  padding-bottom: 0;
+}
+body.preview-mode-active .jobs {
+  display: block !important;
+}
+body.preview-mode-active .grid .img-container {
+  flex: 0 0 calc(16.66% - 8px) !important;
+  max-width: calc(16.66% - 8px) !important;
+  width: calc(16.66% - 8px) !important;
+  height: 110px !important;
+  cursor: default;
+}
+
+/* ปุ่มกดปิดโหมดพรีวิว (จะลอยอยู่มุมขวาบนเฉพาะตอนเปิดพรีวิว) */
+.btn-exit-preview {
+  display: none;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16pt;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  z-index: 50000;
+}
+body.preview-mode-active .btn-exit-preview {
+  display: block;
+}
+
 /* 📱 แก้ปัญหาซ้อนทับกันและการแสดงผลสำหรับมือถือ (Mobile Responsive) */
 @media (max-width: 768px) {
   body { padding: 10px; font-size: 15pt; padding-bottom: 90px; }
@@ -362,7 +428,7 @@ textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; m
   html, body { margin: 0; padding: 0; font-family:'TH SarabunPSK', sans-serif !important; background: #fff; }
   
   /* ซ่อนลายน้ำเว็บ สลักนาฬิกา และป๊อปอัปทั้งหมดตอนพิมพ์ */
-  .noprint, .btn-toggle-day, .autosave-toast, .floating-clock, .welcome-modal, .web-watermark { display: none !important; }
+  .noprint, .btn-toggle-day, .autosave-toast, .floating-clock, .welcome-modal, .web-watermark, .btn-exit-preview { display: none !important; }
   
   .jobs { display: block !important; }
   .img-controls { display: none !important; } 
@@ -379,6 +445,8 @@ textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; m
 <body>
 
 <div class="web-watermark">By Apichat</div>
+
+<button class="btn-exit-preview" onclick="exitPreviewMode()">❌ ปิดหน้าต่างพรีวิว</button>
 
 <div id="welcomeModal" class="welcome-modal">
   <div class="welcome-content">
@@ -404,6 +472,7 @@ textarea { font-size: 16pt; width: 100%; padding: 8px; box-sizing: border-box; m
 <h2 style="margin-top:0; margin-bottom:10px;">ระบบสร้างรายงานการปฏิบัติงาน</h2>
 <div class="menu-buttons">
   <button onclick="addDay()" style="background:#28a745; color:white; border:none;">+ เพิ่มวันที่</button>
+  <button onclick="enterPreviewMode()" style="background:#17a2b8; color:white; border:none;">👁 พรีวิวเอกสาร</button>
   <button onclick="window.print()" style="background:#007bff; color:white; border:none;">Export PDF (A4)</button>
   <button onclick="exportToWord()" style="background:#20c997; color:white; border:none;">Export Word (.doc)</button>
   <button onclick="clearAllData()" style="background:#dc3545; color:white; border:none; margin-left: auto;" id="btnClearAll">🗑 ล้างข้อมูลทั้งหมด</button>
@@ -445,6 +514,19 @@ function updateLiveClock() {
 }
 setInterval(updateLiveClock, 1000);
 updateLiveClock();
+
+// 👁 ฟังก์ชันเปิดโหมดพรีวิวข้อมูลทั้งหมด
+function enterPreviewMode() {
+  let days = document.querySelectorAll('.day');
+  if(days.length === 0) { alert('ยังไม่มีข้อมูลรายงานสำหรับการพรีวิวครับ'); return; }
+  document.body.classList.add('preview-mode-active');
+  window.scrollTo(0, 0);
+}
+
+// 👁 ฟังก์ชันปิดโหมดพรีวิวข้อมูลทั้งหมดกลับสู่หน้าหลัก
+function exitPreviewMode() {
+  document.body.classList.remove('preview-mode-active');
+}
 
 function showToast(text, timeStr) {
   let toast = document.getElementById('autosaveToast');
